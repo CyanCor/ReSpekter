@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReSpekter", "ReSpekter\ReSpekter.csproj", "{888F9150-8B7C-412D-8D20-B0CF07D295A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReSpekter.Test", "ReSpekter.Test\ReSpekter.Test.csproj", "{FCEDBB6D-4911-4B47-8C5C-1724BD387179}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{888F9150-8B7C-412D-8D20-B0CF07D295A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{888F9150-8B7C-412D-8D20-B0CF07D295A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{888F9150-8B7C-412D-8D20-B0CF07D295A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{888F9150-8B7C-412D-8D20-B0CF07D295A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCEDBB6D-4911-4B47-8C5C-1724BD387179}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCEDBB6D-4911-4B47-8C5C-1724BD387179}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCEDBB6D-4911-4B47-8C5C-1724BD387179}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCEDBB6D-4911-4B47-8C5C-1724BD387179}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
