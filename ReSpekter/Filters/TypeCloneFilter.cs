@@ -35,10 +35,8 @@ namespace ReSpekter.Filters
         /// <returns>The cloned type.</returns>
         public TypeDefinition Process(TypeDefinition stage, Context context)
         {
-            // TODO: handle base types
-            context.GetTypeReference(stage.BaseType);
-            var result = new TypeDefinition(stage.Namespace, stage.Name, stage.Attributes);
-            return result;
+            var baseType = stage.BaseType != null ? context.ResolveType(stage.BaseType) : null;
+            return new TypeDefinition(stage.Namespace, stage.Name, stage.Attributes, baseType);
         }
     }
 }

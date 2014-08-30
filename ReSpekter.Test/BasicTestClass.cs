@@ -23,7 +23,12 @@ namespace ReSpekter.Test
     /// <summary>
     /// The basic test class.
     /// </summary>
-    public class BasicTestClass
+    public class BasicTestClass : TestBaseClass
+    {
+
+    }
+
+    public class TestBaseClass
     {
     }
 }

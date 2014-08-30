@@ -21,9 +21,8 @@
 namespace ReSpekter
 {
     using System;
-    using System.Collections.Generic;
-
     using Mono.Cecil;
+    using ReSpekter.Exception;
 
     /// <summary>
     /// The ReSpekter context.
@@ -48,27 +47,31 @@ namespace ReSpekter
         public FilterHost FilterHost { get; private set; }
 
         /// <summary>
-        /// Gets the module manager.
+        /// Gets or sets the module manager.
         /// </summary>
         /// <value>
         /// The module manager.
         /// </value>
-        public ModuleManager ModuleManager { get; private set; }
+        private ModuleManager ModuleManager { get; set; }
 
         /// <summary>
-        /// Adds the specified class to the context.
-        /// Before the type is added, it is fed through the filter chain.
+        /// Resolves the specified type for this context.
         /// </summary>
-        /// <param name="type">
-        /// The type to add.
-        /// </param>
-        public void PushClass(Type type)
+        /// <param name="original">The type to resolve in the new context.</param>
+        /// <returns>The resolved type.</returns>
+        public TypeReference ResolveType(TypeReference original)
         {
+            return ModuleManager.ResolveType(original);
         }
 
-        public TypeReference GetTypeReference(TypeReference original)
+        /// <summary>
+        /// Resolves the specified type for this context.
+        /// </summary>
+        /// <param name="original">The type to resolve in the new context.</param>
+        /// <returns>The resolved type.</returns>
+        public TypeReference ResolveType(Type original)
         {
-            return ModuleManager.FindReference(original);
+            return ModuleManager.ResolveType(original);
         }
     }
 }

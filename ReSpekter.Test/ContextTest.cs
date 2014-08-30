@@ -35,8 +35,8 @@ namespace ReSpekter.Test
         public void BasicTypeCopy()
         {
             var context = new Context();
-
-            context.PushClass(typeof(BasicTestClass));
+            context.ResolveType(typeof(BasicTestClass));
+            context.ResolveType(typeof(TestBaseClass));
         }
     }
 }

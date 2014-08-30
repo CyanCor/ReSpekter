@@ -29,6 +29,9 @@ namespace ReSpekter
     /// </summary>
     public class FilterHost
     {
+        /// <summary>
+        /// The associated context.
+        /// </summary>
         private readonly Context _context;
 
         /// <summary>
