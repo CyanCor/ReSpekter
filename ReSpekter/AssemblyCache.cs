@@ -81,7 +81,7 @@ namespace ReSpekter
         public AssemblyDefinition GetAssembly(string fullName, string location = null)
         {
             AssemblyDefinition definition;
-            if (this.TryGetAssembly(fullName, out definition))
+            if (TryGetAssembly(fullName, out definition))
             {
                 return definition;
             }

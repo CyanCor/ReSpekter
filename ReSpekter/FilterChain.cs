@@ -47,7 +47,7 @@ namespace ReSpekter
         {
             get
             {
-                return this._chain.Count;
+                return _chain.Count;
             }
         }
 
@@ -59,7 +59,7 @@ namespace ReSpekter
         {
             get
             {
-                return ((IList<IFilter<T>>)this._chain).IsReadOnly;
+                return ((IList<IFilter<T>>)_chain).IsReadOnly;
             }
         }
 
@@ -71,7 +71,7 @@ namespace ReSpekter
         /// </returns>
         public IEnumerator<IFilter<T>> GetEnumerator()
         {
-            return this._chain.GetEnumerator();
+            return _chain.GetEnumerator();
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace ReSpekter
         /// </returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.GetEnumerator();
+            return GetEnumerator();
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace ReSpekter
         /// <param name="item">The object to add to the <see cref="T:System.Collections.Generic.ICollection`1" />.</param>
         public void Add(IFilter<T> item)
         {
-            this._chain.Add(item);
+            _chain.Add(item);
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace ReSpekter
         /// </summary>
         public void Clear()
         {
-            this._chain.Clear();
+            _chain.Clear();
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace ReSpekter
         /// </returns>
         public bool Contains(IFilter<T> item)
         {
-            return this._chain.Contains(item);
+            return _chain.Contains(item);
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace ReSpekter
         /// <param name="arrayIndex">Index of the array.</param>
         public void CopyTo(IFilter<T>[] array, int arrayIndex)
         {
-            this._chain.CopyTo(array, arrayIndex);
+            _chain.CopyTo(array, arrayIndex);
         }
 
         /// <summary>
@@ -133,7 +133,7 @@ namespace ReSpekter
         /// </returns>
         public bool Remove(IFilter<T> item)
         {
-            return this._chain.Remove(item);
+            return _chain.Remove(item);
         }
 
         #endregion

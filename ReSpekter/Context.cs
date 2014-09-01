@@ -22,7 +22,6 @@ namespace ReSpekter
 {
     using System;
     using Mono.Cecil;
-    using ReSpekter.Exception;
 
     /// <summary>
     /// The ReSpekter context.

@@ -20,9 +20,8 @@
 
 namespace ReSpekter
 {
+    using Filters;
     using Mono.Cecil;
-
-    using ReSpekter.Filters;
 
     /// <summary>
     /// The filter host contains all filter chains.
@@ -42,7 +41,7 @@ namespace ReSpekter
         /// </param>
         internal FilterHost(Context context)
         {
-            this._context = context;
+            _context = context;
             TypeFilter = new FilterChain<TypeDefinition> { new TypeCloneFilter() };
         }
 

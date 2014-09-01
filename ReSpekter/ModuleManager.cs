@@ -22,10 +22,8 @@ namespace ReSpekter
 {
     using System;
     using System.Collections.Generic;
-
+    using Exception;
     using Mono.Cecil;
-
-    using ReSpekter.Exception;
 
     /// <summary>
     /// Manages all <see cref="ModuleDefinition"/>s for this context.
@@ -37,6 +35,9 @@ namespace ReSpekter
         /// </summary>
         private readonly AssemblyCache _assemblyCache = AssemblyCache.Instance;
 
+        /// <summary>
+        /// The type lookup table.
+        /// </summary>
         private readonly Dictionary<string, TypeDefinition> _types = new Dictionary<string, TypeDefinition>();
 
         /// <summary>
@@ -67,7 +68,7 @@ namespace ReSpekter
         /// </exception>
         public TypeDefinition ResolveType(Type originalType)
         {
-            return this.ResolveType(originalType.FullName, originalType.Assembly.FullName, originalType.Assembly.Location);
+            return ResolveType(originalType.FullName, originalType.Assembly.FullName, originalType.Assembly.Location);
         }
 
         /// <summary>
@@ -84,7 +85,7 @@ namespace ReSpekter
         /// </exception>
         public TypeDefinition ResolveType(TypeReference original)
         {
-            return this.ResolveType(original.FullName, original.Scope.Name);
+            return ResolveType(original.FullName, original.Scope.Name);
         }
 
         /// <summary>
@@ -111,7 +112,7 @@ namespace ReSpekter
                 if (type != null)
                 {
                     var newType = _context.FilterHost.Process(type);
-                    this._types.Add(fullName, newType);
+                    _types.Add(fullName, newType);
                     return newType;
                 }
             }

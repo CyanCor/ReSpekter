@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="BasicTestClass.cs" company="CyanCor GmbH">
+// <copyright file="TestBaseClass.cs" company="CyanCor GmbH">
 //   Copyright (c) 2014 CyanCor GmbH
 //   
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,16 +14,16 @@
 //   See the License for the specific language governing permissions and limitations under the License.
 // </copyright>
 // <summary>
-//   The basic test class.
+//   Defines the TestBaseClass type.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace ReSpekter.Test
 {
     /// <summary>
-    /// The basic test class.
+    /// The test base class.
     /// </summary>
-    public class BasicTestClass : TestBaseClass
+    public class TestBaseClass
     {
     }
 }
