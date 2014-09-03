@@ -43,6 +43,7 @@ namespace ReSpekter
         {
             _context = context;
             TypeFilter = new FilterChain<TypeDefinition> { new TypeCloneFilter() };
+            MemberFilter = new FilterChain<TypeDefinition> { new MemberCloneFilter() };
         }
 
         /// <summary>
@@ -54,13 +55,43 @@ namespace ReSpekter
         public FilterChain<TypeDefinition> TypeFilter { get; private set; }
 
         /// <summary>
-        /// Processes the specified type.
+        /// Gets the member filter chain.
+        /// </summary>
+        /// <value>
+        /// The member filter chain.
+        /// </value>
+        public FilterChain<TypeDefinition> MemberFilter { get; private set; }
+
+        /// <summary>
+        /// Creates the specified type in the context.
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>The filtered type.</returns>
-        public TypeDefinition Process(TypeDefinition type)
+        public TypeDefinition CreateType(TypeDefinition type)
         {
-            return TypeFilter.Process(type, _context);
+            if (type.Scope.Name.Equals("CommonLanguageRuntimeLibrary"))
+            {
+                return type;
+            }
+
+            return TypeFilter.Process(null, type, _context);
+        }
+
+        /// <summary>
+        /// Processes the specified type.
+        /// </summary>
+        /// <param name="stage">
+        /// The stage.
+        /// </param>
+        /// <param name="original">
+        /// The original.
+        /// </param>
+        /// <returns>
+        /// The filtered type.
+        /// </returns>
+        public TypeDefinition CreateFunctions(TypeDefinition stage, TypeDefinition original)
+        {
+            return MemberFilter.Process(stage, original, _context);
         }
     }
 }

@@ -18,6 +18,8 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System.Net;
+
 namespace ReSpekter.Test
 {
     /// <summary>
@@ -25,5 +27,9 @@ namespace ReSpekter.Test
     /// </summary>
     public class TestBaseClass
     {
+        public TestBaseClass Test(TestBaseClass address)
+        {
+            return null;
+        }
     }
 }

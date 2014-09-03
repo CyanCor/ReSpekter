@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="IFilter.cs" company="CyanCor GmbH">
+// <copyright file="TypeInformation.cs" company="CyanCor GmbH">
 //   Copyright (c) 2014 CyanCor GmbH
 //   
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,26 +14,38 @@
 //   See the License for the specific language governing permissions and limitations under the License.
 // </copyright>
 // <summary>
-//   The IFilter interface describes a simple filter stage.
+//   The type information.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace ReSpekter
 {
+    using Mono.Cecil;
+
     /// <summary>
-    /// The IFilter interface describes a simple filter stage.
+    /// The type information.
     /// </summary>
-    /// <typeparam name="T">The type of element that should be filtered.</typeparam>
-    public interface IFilter<T>
+    internal class TypeInformation
     {
         /// <summary>
-        /// Processes the specified element.
+        /// Initializes a new instance of the <see cref="TypeInformation"/> class.
         /// </summary>
-        /// <param name="stage">The stage represents the current state that the element is in.
-        /// It may be reused and modified as it is no longer needed afterwards.</param>
-        /// <param name="original">The original elemet for reference. Do not edit this.</param>
-        /// <param name="context">The context that the element is being created in.</param>
-        /// <returns>The resulting element after filtering. This may as well be the modified stage element.</returns>
-        T Process(T stage, T original, Context context);
+        /// <param name="fullName">The full name.</param>
+        /// <param name="originalType">Type of the original.</param>
+        /// <param name="stagedType">Type of the staged.</param>
+        public TypeInformation(string fullName, TypeDefinition originalType, TypeDefinition stagedType)
+        {
+            FullName = fullName;
+            OriginalType = originalType;
+            StagedType = stagedType;
+        }
+
+        public bool Built { get; set; }
+
+        public TypeDefinition StagedType { get; set; }
+
+        public TypeDefinition OriginalType { get; private set; }
+
+        public string FullName { get; private set; }
     }
 }

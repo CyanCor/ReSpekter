@@ -56,11 +56,13 @@
     <Compile Include="Exception\TypeNotFoundException.cs" />
     <Compile Include="FilterChain.cs" />
     <Compile Include="FilterHost.cs" />
+    <Compile Include="Filters\MemberCloneFilter.cs" />
     <Compile Include="IFilter.cs" />
     <Compile Include="ModuleManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Filters\TypeCloneFilter.cs" />
     <Compile Include="Exception\ReSpekterException.cs" />
+    <Compile Include="TypeInformation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -141,12 +141,15 @@ namespace ReSpekter
         /// <summary>
         /// Processes the specified element.
         /// </summary>
+        /// <param name="stage">The current element.</param>
         /// <param name="original">The original element.</param>
         /// <param name="context">The context.</param>
-        /// <returns>The filtered element.</returns>
-        public T Process(T original, Context context)
+        /// <returns>
+        /// The filtered element.
+        /// </returns>
+        public T Process(T stage, T original, Context context)
         {
-            return _chain.Aggregate(original, (current, filter) => filter.Process(current, context));
+            return _chain.Aggregate(stage, (current, filter) => filter.Process(current, original, context));
         }
     }
 }

@@ -65,6 +65,7 @@
     <Compile Include="ContextTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestBaseClass.cs" />
+    <Compile Include="GroundworkTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

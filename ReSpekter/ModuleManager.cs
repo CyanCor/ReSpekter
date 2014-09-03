@@ -18,6 +18,8 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System.Reflection;
+
 namespace ReSpekter
 {
     using System;
@@ -39,6 +41,11 @@ namespace ReSpekter
         /// The type lookup table.
         /// </summary>
         private readonly Dictionary<string, TypeDefinition> _types = new Dictionary<string, TypeDefinition>();
+
+        /// <summary>
+        /// The staged types
+        /// </summary>
+        private readonly Dictionary<string, TypeInformation> _stagedTypes = new Dictionary<string, TypeInformation>();
 
         /// <summary>
         /// The context for this manager.
@@ -66,7 +73,7 @@ namespace ReSpekter
         /// <exception cref="TypeNotFoundException">
         /// thrown if the type cannot be resolved.
         /// </exception>
-        public TypeDefinition ResolveType(Type originalType)
+        public TypeReference ResolveType(Type originalType)
         {
             return ResolveType(originalType.FullName, originalType.Assembly.FullName, originalType.Assembly.Location);
         }
@@ -83,9 +90,68 @@ namespace ReSpekter
         /// <exception cref="TypeNotFoundException">
         /// thrown if the type cannot be resolved.
         /// </exception>
-        public TypeDefinition ResolveType(TypeReference original)
+        public TypeReference ResolveType(TypeReference original)
         {
+            if (EarlyFilter(original))
+            {
+                return original;
+            }
+
             return ResolveType(original.FullName, original.Scope.Name);
+        }
+
+        /// <summary>
+        /// Filters type references that cannot be handled for now.
+        /// </summary>
+        /// <param name="original">
+        /// The original.
+        /// </param>
+        /// <returns>
+        /// The <see cref="bool"/>.
+        /// </returns>
+        private static bool EarlyFilter(TypeReference original)
+        {
+            if (original.IsArray)
+            {
+                return true;
+            }
+
+            if (original.IsByReference)
+            {
+                return true;
+            }
+
+            if (original.IsFunctionPointer)
+            {
+                return true;
+            }
+
+            if (original.IsGenericInstance)
+            {
+                return true;
+            }
+
+            if (original.IsGenericParameter)
+            {
+                return true;
+            }
+
+            if (original.IsPinned)
+            {
+                return true;
+            }
+
+            if (original.IsSentinel)
+            {
+                return true;
+            }
+
+            if (original.IsPointer)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -96,24 +162,48 @@ namespace ReSpekter
         /// <param name="assemblyLocation">[optional] The assembly location if known.</param>
         /// <returns>the resolved type.</returns>
         /// <exception cref="TypeNotFoundException">thrown if the type cannot be resolved.</exception>
-        private TypeDefinition ResolveType(string fullName, string assemblyName, string assemblyLocation = null)
+        private TypeReference ResolveType(string fullName, string assemblyName, string assemblyLocation = null)
+        {
+            var info = LookupTypeInformation(fullName, assemblyName, assemblyLocation);
+            if (!info.Built)
+            {
+                info.Built = true;
+                if (info.StagedType != info.OriginalType)
+                {
+                    info.StagedType = _context.FilterHost.CreateFunctions(info.StagedType, info.OriginalType);
+                }
+            }
+
+            return info.StagedType;
+        }
+
+        /// <summary>
+        /// Retrieves type information from cache or creates a new type from the information.
+        /// </summary>
+        /// <param name="fullName">The fully qualified name for the type.</param>
+        /// <param name="assemblyName">The assembly to search the original type in.</param>
+        /// <param name="assemblyLocation">[optional] The assembly location if known.</param>
+        /// <returns>the resolved type.</returns>
+        /// <exception cref="TypeNotFoundException">thrown if the type cannot be resolved.</exception>
+        private TypeInformation LookupTypeInformation(string fullName, string assemblyName, string assemblyLocation)
         {
             var assembly = _assemblyCache.GetAssembly(assemblyName, assemblyLocation);
 
-            TypeDefinition typeReference;
-            if (_types.TryGetValue(fullName, out typeReference))
+            TypeInformation typeReference;
+            if (_stagedTypes.TryGetValue(fullName, out typeReference))
             {
                 return typeReference;
             }
 
             foreach (var module in assembly.Modules)
             {
-                var type = module.GetType(fullName);
-                if (type != null)
+                var originalType = module.GetType(fullName);
+                if (originalType != null)
                 {
-                    var newType = _context.FilterHost.Process(type);
-                    _types.Add(fullName, newType);
-                    return newType;
+                    var info = new TypeInformation(fullName, originalType, null);
+                    _stagedTypes.Add(fullName, info);
+                    info.StagedType = _context.FilterHost.CreateType(originalType);
+                    return info;
                 }
             }
 

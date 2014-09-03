@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="TypeCloneFilter.cs" company="CyanCor GmbH">
+// <copyright file="MemberCloneFilter.cs" company="CyanCor GmbH">
 //   Copyright (c) 2014 CyanCor GmbH
 //   
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,10 +25,10 @@ namespace ReSpekter.Filters
     /// <summary>
     /// The type cloning filter.
     /// </summary>
-    public class TypeCloneFilter : IFilter<TypeDefinition>
+    public class MemberCloneFilter : IFilter<TypeDefinition>
     {
         /// <summary>
-        /// Clones the specified type.
+        /// Clones the specified types members.
         /// </summary>
         /// <param name="stage">The current processed element.</param>
         /// <param name="original">The original.</param>
@@ -38,8 +38,18 @@ namespace ReSpekter.Filters
         /// </returns>
         public TypeDefinition Process(TypeDefinition stage, TypeDefinition original, Context context)
         {
-            var baseType = original.BaseType != null ? context.ResolveType(original.BaseType) : null;
-            return new TypeDefinition(original.Namespace, original.Name, original.Attributes, baseType);
+            foreach (var method in original.Methods)
+            {
+                var methodDefinition = new MethodDefinition(method.Name, method.Attributes, context.ResolveType(method.ReturnType));
+                foreach (var parameterDefinition in method.Parameters)
+                {
+                    methodDefinition.Parameters.Add(new ParameterDefinition(parameterDefinition.Name, parameterDefinition.Attributes, context.ResolveType(parameterDefinition.ParameterType)));
+                }
+
+                stage.Methods.Add(methodDefinition);
+            }
+
+            return stage;
         }
     }
 }
