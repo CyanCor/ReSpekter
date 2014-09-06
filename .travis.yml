@@ -5,11 +5,9 @@ env:
   - EnableNuGetPackageRestore=true 
  
 install:
-  - sudo apt-get remove mono-devel mono-gmcs nunit-console
   - wget -qO - http://download.mono-project.com/repo/xamarin.gpg | sudo apt-key add -
   - echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee -a /etc/apt/sources.list.d/mono-xamarin.list
   - sudo apt-get update
-  - sudo apt-get upgrade
   - sudo apt-get install mono-devel mono-gmcs nunit-console
   - mozroots --import --sync
   - wget https://nuget.org/nuget.exe
