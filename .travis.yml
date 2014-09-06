@@ -5,7 +5,9 @@ env:
   - EnableNuGetPackageRestore=true 
  
 install:
-  - sudo apt-get install mono-complete -t experimental
+  - sudo apt-get install mono-devel mono-gmcs nunit-console
+  - wget https://nuget.org/nuget.exe
+  - mono NuGet.exe update --self
  
 script:
   - xbuild ReSpekter.sln
