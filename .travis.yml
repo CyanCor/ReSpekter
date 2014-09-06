@@ -8,7 +8,7 @@ install:
   - wget -qO - http://download.mono-project.com/repo/xamarin.gpg | sudo apt-key add -
   - echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee -a /etc/apt/sources.list.d/mono-xamarin.list
   - sudo apt-get update
-  - sudo apt-get install mono-complete
+  - sudo apt-get install mono-complete mono-devel mono-4.0-service libmono-cil-dev
   - wget https://nuget.org/nuget.exe
   - mono nuget.exe update --self
  
