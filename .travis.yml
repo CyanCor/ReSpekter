@@ -5,7 +5,7 @@ env:
   - EnableNuGetPackageRestore=true 
  
 install:
-  - sudo apt-get install mono-devel mono-gmcs nunit-console
+  - apt-get install mono-complete -t experimental
  
 script:
   - xbuild ReSpekter.sln
