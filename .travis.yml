@@ -7,7 +7,7 @@ env:
 install:
   - sudo apt-get install mono-devel mono-gmcs nunit-console
   - wget https://nuget.org/nuget.exe
-  - mono NuGet.exe update --self
+  - mono nuget.exe update --self
  
 script:
   - xbuild ReSpekter.sln
