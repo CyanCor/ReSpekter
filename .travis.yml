@@ -5,7 +5,7 @@ env:
   - EnableNuGetPackageRestore=true 
  
 install:
-  - apt-get install mono-complete -t experimental
+  - sudo apt-get install mono-complete -t experimental
  
 script:
   - xbuild ReSpekter.sln
