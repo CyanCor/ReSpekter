@@ -5,7 +5,7 @@ env:
   - EnableNuGetPackageRestore=true 
  
 install:
-  - sudo apt-key add xamarin.gpg
+  - wget -qO - http://download.mono-project.com/repo/xamarin.gpg | sudo apt-key add -
   - sudo echo "deb http://download.mono-project.com/repo/debian wheezy main" > /etc/apt/sources.list.d/mono-xamarin.list
   - sudo apt-get update
   - sudo apt-get upgrade
