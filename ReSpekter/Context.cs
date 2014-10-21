@@ -57,8 +57,8 @@ namespace CyanCor.ReSpekter
                 AssemblyFilter.Whitelist.Add(subject => subject.MainModule.FullyQualifiedName.StartsWith(basePath));
                 AssemblyFilter.Blacklist.Add(subject => subject.MainModule.Name.Equals("vshost32.exe"));
                 AssemblyFilter.Blacklist.Add(subject => subject.MainModule.Name.Equals("Mono.Cecil.dll"));
-                _modifiers.Add(new DirtyModifier());
                 _modifiers.Add(new LazyCompositionModifier());
+                _modifiers.Add(new DirtyModifier());
             }
         }
 

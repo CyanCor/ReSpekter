@@ -52,9 +52,10 @@ namespace TestApp
 
             set
             {
-                if (TestMember == null)
+                if (value != null)
                 {
-                    _testMemberUniqueIdentifier = TestMember.UniqueIdentifier;
+                    _testMemberUniqueIdentifier = value.UniqueIdentifier;
+                    _testMemberWeakReference.SetTarget(value);
                 }
             }
         }
