@@ -29,7 +29,7 @@ namespace CyanCor.ReSpekter
             }
         }
 
-        public virtual void Visit(ModuleDefinition module)
+        protected virtual void Visit(ModuleDefinition module)
         {
             foreach (var typeDefinition in module.Types)
             {
@@ -37,7 +37,7 @@ namespace CyanCor.ReSpekter
             }
         }
 
-        public virtual void Visit(TypeDefinition type)
+        protected virtual void Visit(TypeDefinition type)
         {
             foreach (var property in type.Properties)
             {
@@ -56,12 +56,12 @@ namespace CyanCor.ReSpekter
 
         }
 
-        private void Visit(PropertyDefinition property)
+        protected virtual void Visit(PropertyDefinition property)
         {
             
         }
 
-        public virtual void Visit(MethodDefinition method)
+        protected virtual void Visit(MethodDefinition method)
         {
             if (method.Name.Equals("Printtest"))
             {
@@ -70,7 +70,7 @@ namespace CyanCor.ReSpekter
             }
         }
 
-        public void Visit(FieldDefinition field)
+        protected virtual void Visit(FieldDefinition field)
         {
             
         }

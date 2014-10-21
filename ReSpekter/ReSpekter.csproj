@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{888F9150-8B7C-412D-8D20-B0CF07D295A6}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CyanCor.ReSpekter</RootNamespace>
     <AssemblyName>ReSpekter</AssemblyName>
@@ -28,6 +28,9 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Cecil">
@@ -59,10 +62,13 @@
     <Compile Include="Exception\TypeNotFoundException.cs" />
     <Compile Include="IFilter.cs" />
     <Compile Include="IModifier.cs" />
+    <Compile Include="Modifiers\LazyCompositionModifier.cs" />
     <Compile Include="Modifiers\DirtyModifier.cs" />
+    <Compile Include="Modifiers\IDirty.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Exception\ReSpekterException.cs" />
-    <Compile Include="ReSpektedAttribute.cs" />
+    <Compile Include="NoReSpektorAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

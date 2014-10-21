@@ -18,24 +18,16 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-using Mono.Cecil.Cil;
-
 namespace CyanCor.ReSpekter.Modifiers
 {
+    using System;
     using System.Linq;
     using Mono.Cecil;
-
-    public interface IDirty
-    {
-        bool Dirty { get; set; }
-    }
+    using Mono.Cecil.Cil;
 
     public class DirtyModifier : BaseModifier
     {
-        private OpCode[] _hotCodes = new OpCode[]
+        private readonly OpCode[] _hotCodes =
         {
             OpCodes.Starg, OpCodes.Starg_S,
             OpCodes.Stelem_Any, OpCodes.Stelem_I, OpCodes.Stelem_I1, OpCodes.Stelem_I2,
@@ -48,6 +40,8 @@ namespace CyanCor.ReSpekter.Modifiers
             OpCodes.Stobj,
             OpCodes.Stsfld
         };
+
+        private PropertyDefinition _callProperty;
 
         bool CheckInterface(TypeDefinition type, Type iface)
         {
@@ -62,48 +56,31 @@ namespace CyanCor.ReSpekter.Modifiers
             return type.Interfaces.Any(reference => reference.FullName.Equals(iface.FullName));
         }
 
-        public override void Visit(TypeDefinition type)
+        protected override void Visit(TypeDefinition type)
         {
             if (CheckInterface(type, typeof(IDirty)))
             {
+                _callProperty = FindProperty(type, "Dirty").Resolve();
                 base.Visit(type);
             }
         }
 
-        public override void Visit(MethodDefinition method)
+        protected override void Visit(MethodDefinition method)
         {
-            if (!method.IsStatic && !method.Name.Equals("set_Dirty") && !method.IsAbstract)
+            if (!method.IsStatic && !method.IsAbstract && !method.FullName.Equals(_callProperty.SetMethod.FullName))
             {
-                var hotPoints = new List<Instruction>();
-                var pure = true;
-                foreach (var instruction in method.Body.Instructions)
-                {
-                    if (_hotCodes.Contains(instruction.OpCode))
-                    {
-                        pure = false;
-                        hotPoints.Add(instruction);
-
-                    }
-                }
-
+                var hotPoints = method.Body.Instructions.Where(instruction => _hotCodes.Contains(instruction.OpCode)).ToList();
 
                 foreach (var hotPoint in hotPoints)
                 {
                     var il = method.Body.GetILProcessor();
 
-                    var callMethod = FindMethod(method.DeclaringType, "set_Dirty");
-
-                    il.InsertAfter(hotPoint,
-                        il.Create(OpCodes.Call, callMethod));
+                    il.InsertAfter(hotPoint, il.Create(OpCodes.Call, _callProperty.Resolve().SetMethod));
                     il.InsertAfter(hotPoint, il.Create(OpCodes.Ldc_I4, 1));
                     il.InsertAfter(hotPoint, il.Create(OpCodes.Ldarg_0));
                 }
-
-                if (pure)
-                {
-
-                }
             }
+
             base.Visit(method);
         }
 
@@ -113,6 +90,17 @@ namespace CyanCor.ReSpekter.Modifiers
             if (reference == null)
             {
                 return FindMethod(type.BaseType.Resolve(), name);
+            }
+
+            return reference;
+        }
+
+        private PropertyReference FindProperty(TypeDefinition type, string name)
+        {
+            var reference = type.Properties.FirstOrDefault(definition => definition.Name.Equals(name));
+            if (reference == null)
+            {
+                return FindProperty(type.BaseType.Resolve(), name);
             }
 
             return reference;

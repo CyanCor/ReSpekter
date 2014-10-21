@@ -18,14 +18,13 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-using CyanCor.ReSpekter.Modifiers;
-
 namespace TestApp
 {
     using System;
+    using System.Threading;
     using CyanCor.ReSpekter;
 
-    class Program : IDirty
+    class Program 
     {
         private static bool _check;
         private string _test;
@@ -39,47 +38,19 @@ namespace TestApp
                 return;
             }
 
-            foreach (var s in args)
-            {
-                Console.WriteLine(s);
-            }
-
-            Printtest();
-            if (!_check)
-            {
-                Console.WriteLine("Printtest not called");
-            }
-
-
-            new Program().TestMethod();
+            var test = new MyLittleTestClass();
+            var timer = new Timer(OnTimer, test, new TimeSpan(0, 0, 0, 0, 100), new TimeSpan(0, 0, 0, 0, 100));
+            
+            test.Run();
         }
 
-        public static void Printtest()
+        private static void OnTimer(object state)
         {
-            Console.WriteLine("Everything original");
-            _check = true;
-        }
-
-        private void TestMethod()
-        {
-            while (true)
+            var test = (MyLittleTestClass)state;
+            if (test.Dirty)
             {
-                var s = Console.ReadLine();
-                if (_test != s)
-                {
-                    _test = s;
-                }
-            }
-        }
-
-
-        public bool Dirty
-        {
-            get { return _dirty; }
-            set
-            {
-                _dirty = value;
-                Console.WriteLine("Dirty = " + _dirty);
+                test.Dirty = false;
+                Console.WriteLine(test.ImportantData + " persisted.");
             }
         }
     }
