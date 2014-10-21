@@ -18,59 +18,200 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace ReSpekter
+using CyanCor.ReSpekter.Modifiers;
+
+namespace CyanCor.ReSpekter
 {
     using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Reflection;
+    using System.Runtime.CompilerServices;
     using Mono.Cecil;
+    using global::ReSpekter.Exception;
 
-    /// <summary>
-    /// The ReSpekter context.
-    /// </summary>
-    public class Context
+    [Serializable]
+    public class Context : MarshalByRefObject
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Context"/> class.
-        /// </summary>
+        private static bool _isClone;
+        private AppDomain _cloneDomain;
+        private Context _clone;
+        private List<IModifier> _modifiers = new List<IModifier>();
+        public AcceptanceFilter<AssemblyDefinition> AssemblyFilter { get; private set; }
+        private List<string> _processedAssemblies = new List<string>();
+        private Dictionary<string, string> _locationLookups = new Dictionary<string, string>();
+
+        private void AssemblyReady(byte[] assembly)
+        {
+            _cloneDomain.Load(assembly);
+        }
+
         public Context()
         {
-            FilterHost = new FilterHost(this);
-            ModuleManager = new ModuleManager(this);
+            var p = Assembly.GetCallingAssembly().Location;
+            if (!string.IsNullOrEmpty(p))
+            {
+                var basePath = Path.GetDirectoryName(p);
+                AssemblyFilter = new AcceptanceFilter<AssemblyDefinition>();
+                AssemblyFilter.Whitelist.Add(subject => subject.MainModule.FullyQualifiedName.StartsWith(basePath));
+                AssemblyFilter.Blacklist.Add(subject => subject.MainModule.Name.Equals("vshost32.exe"));
+                AssemblyFilter.Blacklist.Add(subject => subject.MainModule.Name.Equals("Mono.Cecil.dll"));
+                _modifiers.Add(new DirtyModifier());
+            }
         }
 
-        /// <summary>
-        /// Gets the filter host.
-        /// </summary>
-        /// <value>
-        /// The filter host.
-        /// </value>
-        public FilterHost FilterHost { get; private set; }
-
-        /// <summary>
-        /// Gets or sets the module manager.
-        /// </summary>
-        /// <value>
-        /// The module manager.
-        /// </value>
-        private ModuleManager ModuleManager { get; set; }
-
-        /// <summary>
-        /// Resolves the specified type for this context.
-        /// </summary>
-        /// <param name="original">The type to resolve in the new context.</param>
-        /// <returns>The resolved type.</returns>
-        public TypeReference ResolveType(TypeReference original)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public bool Run(object[] parameters)
         {
-            return ModuleManager.ResolveType(original);
+            object ignored;
+            return RunInternal(parameters, out ignored);
         }
 
-        /// <summary>
-        /// Resolves the specified type for this context.
-        /// </summary>
-        /// <param name="original">The type to resolve in the new context.</param>
-        /// <returns>The resolved type.</returns>
-        public TypeReference ResolveType(Type original)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public bool Run(object[] parameters, out object result)
         {
-            return ModuleManager.ResolveType(original);
+            return RunInternal(parameters, out result);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private bool RunInternal(object[] parameters, out object result)
+        { 
+            if (_isClone)
+            {
+                result = null;
+                return false;
+            }
+
+            var mainMethod = GetCallingMethod();
+            CreateAppDomain();
+            ModifyAssemblies();
+            result = RunClone(parameters, mainMethod);
+            AppDomain.Unload(_cloneDomain);
+            return true;
+        }
+
+        private object RunClone(object[] parameters, MethodBase mainMethod)
+        {
+            _clone = _cloneDomain.CreateInstanceFromAndUnwrap(
+                typeof (Context).Assembly.Location,
+                typeof (Context).FullName) as Context;
+
+            foreach (var locationLookup in _locationLookups)
+            {
+                _clone.AddResolve(locationLookup.Key, locationLookup.Value);
+            }
+
+            return _clone.InvokeClone(mainMethod.DeclaringType.Assembly.FullName, mainMethod.DeclaringType.FullName, mainMethod.Name,
+                parameters);
+        }
+
+        private void ModifyAssemblies()
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                ModifyAssembly(assembly);
+            }
+        }
+
+        private void CreateAppDomain()
+        {
+            var evidence = AppDomain.CurrentDomain.Evidence;
+            var setup = new AppDomainSetup
+            {
+                ApplicationBase = Path.GetDirectoryName(typeof (TypeDefinition).Assembly.Location)
+            };
+
+            _cloneDomain = AppDomain.CreateDomain("ReSpekted", evidence, setup);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static MethodBase GetCallingMethod()
+        {
+            var stackFrame = new StackTrace().GetFrames();
+            var mainMethod = stackFrame[3].GetMethod();
+
+            if (!mainMethod.IsStatic)
+            {
+                throw new ReSpekterException("Run has to be called from a static method.");
+            }
+
+            if (mainMethod.IsConstructor)
+            {
+                throw new ReSpekterException("Run cannot be called from constructors.");
+            }
+            return mainMethod;
+        }
+
+        private void AddResolve(string fullName, string location)
+        {
+            _locationLookups.Add(fullName, location);
+        }
+
+        private void ModifyAssembly(Assembly assembly)
+        {
+            if (_locationLookups.ContainsKey(assembly.FullName))
+            {
+                return;
+            }
+
+            _locationLookups.Add(assembly.FullName, assembly.Location);
+
+            ModifyAssembly(AssemblyDefinition.ReadAssembly(assembly.Location));
+
+        }
+
+        private void ModifyAssembly(AssemblyDefinition assembly)
+        {
+            if (!assembly.FullName.Equals(typeof(Context).Assembly.FullName))
+            {
+                if (AssemblyFilter.Check(assembly))
+                {
+                    foreach (var modifier in _modifiers)
+                    {
+                        modifier.Visit(assembly);
+                    }
+
+                    var stream = new MemoryStream();
+                    assembly.Write(stream);
+                    _cloneDomain.Load(stream.ToArray());
+                }
+            }
+        }
+
+        private object InvokeClone(string assemblyName, string typeName, string methodName, object[] parameters)
+        {
+            _isClone = true;
+
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
+
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (assembly.FullName.Equals(assemblyName))
+                {
+                    foreach (var type in assembly.GetTypes())
+                    {
+                        if (type.FullName.Equals(typeName))
+                        {
+                            var method = type.GetMethod(methodName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                            Debug.WriteLine(method.ToString());
+                            return method.Invoke(null, parameters);
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            if (_locationLookups.ContainsKey(args.Name))
+            {
+                return Assembly.LoadFile(_locationLookups[args.Name]);
+            }
+
+            return null;
         }
     }
 }

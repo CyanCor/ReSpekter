@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="TypeCloneFilter.cs" company="CyanCor GmbH">
+// <copyright file="AcceptanceFilter.cs" company="CyanCor GmbH">
 //   Copyright (c) 2014 CyanCor GmbH
 //   
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,32 +14,33 @@
 //   See the License for the specific language governing permissions and limitations under the License.
 // </copyright>
 // <summary>
-//   The type cloning filter.
+//   Defines the AcceptSubjectDelegate type.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace ReSpekter.Filters
+namespace CyanCor.ReSpekter
 {
-    using Mono.Cecil;
+    public delegate bool FilterSubjectDelegate<T>(T subject);
 
-    /// <summary>
-    /// The type cloning filter.
-    /// </summary>
-    public class TypeCloneFilter : IFilter<TypeDefinition>
+    public class AcceptanceFilter<T> : IFilter<T>
     {
-        /// <summary>
-        /// Clones the specified type.
-        /// </summary>
-        /// <param name="stage">The current processed element.</param>
-        /// <param name="original">The original.</param>
-        /// <param name="context">The context.</param>
-        /// <returns>
-        /// The cloned type.
-        /// </returns>
-        public TypeDefinition Process(TypeDefinition stage, TypeDefinition original, Context context)
+        public Filter<T> Whitelist { get; private set; }
+        public Filter<T> Blacklist { get; private set; }
+
+        public AcceptanceFilter()
         {
-            var baseType = original.BaseType != null ? context.ResolveType(original.BaseType) : null;
-            return new TypeDefinition(original.Namespace, original.Name, original.Attributes, baseType);
+            Whitelist = new Filter<T>();
+            Blacklist = new Filter<T>();
+        }
+
+        public bool Check(T subject)
+        {
+            if (Blacklist.Check(subject))
+            {
+                return false;
+            }
+
+            return Whitelist.Check(subject);
         }
     }
 }

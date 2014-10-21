@@ -20,6 +20,7 @@
 
 namespace ReSpekter.Test
 {
+    using CyanCor.ReSpekter;
     using NUnit.Framework;
 
     /// <summary>
@@ -32,11 +33,24 @@ namespace ReSpekter.Test
         /// Tests basic type copying.
         /// </summary>
         [Test]
-        public void BasicTypeCopy()
+        public static void BasicTypeCopy()
         {
             var context = new Context();
-            context.ResolveType(typeof(BasicTestClass));
-            context.ResolveType(typeof(TestBaseClass));
+            if (context.Run(new object[0]))
+            {
+                return;
+            }
+
+            var c = new BasicTestClass();
+            c.MakeMeDirty();
+            Assert.True(c.Dirty);
+            c.Dirty = false;
+            Assert.False(c.Dirty);
+            c.Test(null);
+            Assert.True(c.Dirty);
+            c.Dirty = false;
+            c.AnotherTest();
+            Assert.False(c.Dirty);
         }
     }
 }

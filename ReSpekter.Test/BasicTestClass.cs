@@ -25,5 +25,13 @@ namespace ReSpekter.Test
     /// </summary>
     public class BasicTestClass : TestBaseClass
     {
+
+        private int _blubb;
+
+        public void MakeMeDirty()
+        {
+            _blubb++;
+        }
+
     }
 }

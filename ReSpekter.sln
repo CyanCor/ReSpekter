@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReSpekter", "ReSpekter\ReSp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReSpekter.Test", "ReSpekter.Test\ReSpekter.Test.csproj", "{FCEDBB6D-4911-4B47-8C5C-1724BD387179}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{C3D4BE2A-D9B4-42B7-8FFA-823AEEC269E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{FCEDBB6D-4911-4B47-8C5C-1724BD387179}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FCEDBB6D-4911-4B47-8C5C-1724BD387179}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FCEDBB6D-4911-4B47-8C5C-1724BD387179}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3D4BE2A-D9B4-42B7-8FFA-823AEEC269E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3D4BE2A-D9B4-42B7-8FFA-823AEEC269E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3D4BE2A-D9B4-42B7-8FFA-823AEEC269E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3D4BE2A-D9B4-42B7-8FFA-823AEEC269E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
