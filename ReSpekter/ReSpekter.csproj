@@ -62,6 +62,8 @@
     <Compile Include="Exception\TypeNotFoundException.cs" />
     <Compile Include="IFilter.cs" />
     <Compile Include="IModifier.cs" />
+    <Compile Include="Modifiers\IResolvableType.cs" />
+    <Compile Include="Modifiers\ITypeResolver.cs" />
     <Compile Include="Modifiers\LazyCompositionModifier.cs" />
     <Compile Include="Modifiers\DirtyModifier.cs" />
     <Compile Include="Modifiers\IDirty.cs" />

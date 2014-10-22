@@ -54,6 +54,7 @@ namespace TestApp
             {
                 if (value != null)
                 {
+                    Debugger.Break();
                     _testMemberUniqueIdentifier = value.UniqueIdentifier;
                     _testMemberWeakReference.SetTarget(value);
                 }
@@ -62,6 +63,7 @@ namespace TestApp
 
         public void Run()
         {
+            Debugger.Break();
             TestMember.TestMember = "blubb";
 
             Console.WriteLine(TestMember.TestMember);
