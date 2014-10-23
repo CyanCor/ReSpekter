@@ -57,6 +57,7 @@
     <Compile Include="AcceptanceFilter.cs" />
     <Compile Include="AttributeFilter.cs" />
     <Compile Include="BaseModifier.cs" />
+    <Compile Include="CecilHelper.cs" />
     <Compile Include="Context.cs" />
     <Compile Include="Filter.cs" />
     <Compile Include="Exception\TypeNotFoundException.cs" />

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Mono.Cecil;
@@ -8,9 +9,12 @@ namespace CyanCor.ReSpekter
 {
     public class BaseModifier : IModifier
     {
+        private delegate void InstructionCloneDelegate(Instruction source, ILProcessor processor);
         public AcceptanceFilter<AssemblyDefinition> AssemblyAcceptor { get; private set; }
         public AcceptanceFilter<ModuleDefinition> ModuleAcceptor { get; private set; }
         public AcceptanceFilter<TypeDefinition> TypeAcceptor { get; private set; }
+
+        private Dictionary<OpCode, InstructionCloneDelegate> _cloneDelegates = new Dictionary<OpCode, InstructionCloneDelegate>();
 
         internal BaseModifier()
         {
@@ -19,6 +23,11 @@ namespace CyanCor.ReSpekter
             TypeAcceptor = new AcceptanceFilter<TypeDefinition>();
 
             TypeAcceptor.Whitelist.Add(new AttributeFilter(typeof(SecurityAttribute)));
+        }
+
+        void BuildCloneDelegates()
+        {
+            
         }
 
         public virtual void Visit(AssemblyDefinition assembly)
@@ -74,5 +83,6 @@ namespace CyanCor.ReSpekter
         {
             
         }
+
     }
 }

@@ -18,48 +18,19 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-using System.Diagnostics;
-using System.Security;
-
 namespace TestApp
 {
     using System;
+    using System.Diagnostics;
     using CyanCor.ReSpekter.Modifiers;
-    
+
     internal class MyLittleTestClass : IDirty, ITypeResolver
     {
         private bool _dirty;
         public string ImportantData;
         private string _testMemberUniqueIdentifier;
-        private readonly WeakReference<CompositeTest> _testMemberWeakReference = new WeakReference<CompositeTest>(null);
 
-        public CompositeTest TestMember
-        {
-            get
-            {
-                CompositeTest test;
-                lock (_testMemberWeakReference)
-                {
-                    if (!_testMemberWeakReference.TryGetTarget(out test))
-                    {
-                        test = ResolveType<CompositeTest, string>(_testMemberUniqueIdentifier);
-                        _testMemberWeakReference.SetTarget(test);
-                    }
-                }
-
-                return test;
-            }
-
-            set
-            {
-                if (value != null)
-                {
-                    Debugger.Break();
-                    _testMemberUniqueIdentifier = value.UniqueIdentifier;
-                    _testMemberWeakReference.SetTarget(value);
-                }
-            }
-        }
+        public CompositeTest TestMember { get; set; }
 
         public void Run()
         {
