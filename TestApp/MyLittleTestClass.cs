@@ -35,6 +35,7 @@ namespace TestApp
         public void Run()
         {
             Debugger.Break();
+            TestMember = new CompositeTest();
             TestMember.TestMember = "blubb";
 
             Console.WriteLine(TestMember.TestMember);

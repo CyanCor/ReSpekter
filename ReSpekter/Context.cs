@@ -185,7 +185,6 @@ namespace CyanCor.ReSpekter
                     parameters.SymbolWriterProvider = new PdbWriterProvider();
                     parameters.WriteSymbols = true;
                     var path = "ReSpekted\\" + assembly.MainModule.Name;
-                    assembly.MainModule.Import(typeof (System.WeakReference<>));
                     assembly.Write(path, parameters);
                     /*if (File.Exists(Path.ChangeExtension(_locationLookups[assembly.FullName], ".pdb")))
                     {
