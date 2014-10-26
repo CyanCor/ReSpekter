@@ -1,13 +1,18 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReSpekter", "ReSpekter\ReSpekter.csproj", "{888F9150-8B7C-412D-8D20-B0CF07D295A6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReSpekter.Test", "ReSpekter.Test\ReSpekter.Test.csproj", "{FCEDBB6D-4911-4B47-8C5C-1724BD387179}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{C3D4BE2A-D9B4-42B7-8FFA-823AEEC269E2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{92DD2F85-149B-43A1-8686-49693D17605A} = {92DD2F85-149B-43A1-8686-49693D17605A}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Playground", "Playground\Playground.csproj", "{92DD2F85-149B-43A1-8686-49693D17605A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +32,10 @@ Global
 		{C3D4BE2A-D9B4-42B7-8FFA-823AEEC269E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3D4BE2A-D9B4-42B7-8FFA-823AEEC269E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3D4BE2A-D9B4-42B7-8FFA-823AEEC269E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92DD2F85-149B-43A1-8686-49693D17605A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92DD2F85-149B-43A1-8686-49693D17605A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92DD2F85-149B-43A1-8686-49693D17605A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92DD2F85-149B-43A1-8686-49693D17605A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

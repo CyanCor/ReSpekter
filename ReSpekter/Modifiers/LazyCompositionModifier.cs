@@ -18,15 +18,12 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-using System.Windows.Markup;
-
 namespace CyanCor.ReSpekter.Modifiers
 {
     using System;
     using System.Linq;
     using Mono.Cecil;
     using Mono.Cecil.Cil;
-    using Mono.Cecil.Rocks;
 
     public class LazyCompositionModifier : BaseModifier
     {
@@ -68,8 +65,7 @@ namespace CyanCor.ReSpekter.Modifiers
             property.DeclaringType.Fields.Add(uniqueIdentifier);
 
             //var weakReferenceType = property.Module.Import(typeof(WeakReference<>)).MakeGenericInstanceType(propType);
-            var weakReferenceType = property.Module.Import(typeof(WeakReference<>)).MakeGenericInstanceType(propType);
-            var weakReference = new FieldDefinition("_weakReference" + property.Name, FieldAttributes.Private, weakReferenceType);
+            var weakReference = new FieldDefinition("_weakReference" + property.Name, FieldAttributes.Private, propType).Resolve();
             property.DeclaringType.Fields.Add(weakReference);
 
             templateProp.GetMethod.Body.Duplicate(property.GetMethod.Body, (subject, instruction, processor) =>
@@ -187,8 +183,6 @@ namespace CyanCor.ReSpekter.Modifiers
             var setinstructions =
                 property.SetMethod.Body.Instructions.Where(instruction => instruction.OpCode != OpCodes.Nop).ToArray();
 
-            
-            
             //if (CheckInterface(propType, typeof(IResolvableType<>)))
             {
                 base.Visit(property);
@@ -215,50 +209,41 @@ namespace CyanCor.ReSpekter.Modifiers
 
     internal class LazyCompositionTemplate : ITypeResolver
     {
-        public string UniqueIdentifier { get; private set; }
-
         private string _templatePropertyUniqueIdentifier;
-        private WeakReference<ResolvableTypeTemplate> _templatePropertyWeakReference = new WeakReference<ResolvableTypeTemplate>(null);
+        private WeakReference<ResolvableTypeTemplate> _templatePropertyWeakReference;
 
         public ResolvableTypeTemplate TemplateProperty
         {
             get
             {
-                ResolvableTypeTemplate rtt;
-                _templatePropertyWeakReference.TryGetTarget(out rtt);
-                return rtt;
-            }
-            set
-            {
-                _templatePropertyWeakReference.SetTarget(value);
-            }
-        }
-
-        /*{
-            get
-            {
-                ResolvableTypeTemplate test;
-                lock (_templatePropertyWeakReference)
+                ResolvableTypeTemplate obj;
+                if (_templatePropertyWeakReference.TryGetTarget(out obj))
                 {
-                    if (!_templatePropertyWeakReference.TryGetTarget(out test))
-                    {
-                        test = ResolveType<ResolvableTypeTemplate, string>(_templatePropertyUniqueIdentifier);
-                        _templatePropertyWeakReference.SetTarget(test);
-                    }
+                    return obj;
                 }
 
-                return test;
+                obj = ResolveType<ResolvableTypeTemplate, string>(_templatePropertyUniqueIdentifier);
+                _templatePropertyWeakReference.SetTarget(obj);
+                return obj;
             }
 
             set
             {
+                if (_templatePropertyWeakReference == null)
+                {
+                    _templatePropertyWeakReference = new WeakReference<ResolvableTypeTemplate>(value);
+                }
+                else
+                {
+                    _templatePropertyWeakReference.SetTarget(value);
+                }
+
                 if (value != null)
                 {
                     _templatePropertyUniqueIdentifier = value.UniqueIdentifier;
-                    _templatePropertyWeakReference.SetTarget(value);
                 }
             }
-        }*/
+        }
 
         public TT ResolveType<TT, TI>(TI identifer) where TT : class, IResolvableType<TI>
         {
@@ -269,5 +254,7 @@ namespace CyanCor.ReSpekter.Modifiers
     internal class ResolvableTypeTemplate : IResolvableType<string>
     {
         public string UniqueIdentifier { get; private set; }
+
+        public string TestMember;
     }
 }

@@ -18,11 +18,6 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-using System.Collections;
-using System.Diagnostics;
-using System.Reflection;
-using System.Xml.XPath;
-
 namespace CyanCor.ReSpekter
 {
     using System;
@@ -123,9 +118,11 @@ namespace CyanCor.ReSpekter
         {
             var name = ResolveAndImport(subject.Name, instruction, processor, resolver);
             var fieldType = ResolveAndImport(subject.FieldType, instruction, processor, resolver);
-            var declaringType = ResolveAndImport(subject.DeclaringType, instruction, processor, resolver);
+            var declaringType = ResolveAndImport(subject.DeclaringType, instruction, processor, resolver).Resolve();
 
-            return processor.Body.Method.Module.Import(new FieldReference(name, fieldType, declaringType));
+            var field = declaringType.Resolve().Fields.Single(definition => definition.Name.Equals(name)).Resolve();
+
+            return processor.Body.Method.Module.Import(field);
         }
 
         private static VariableDefinition ResolveAndImport(VariableDefinition subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
@@ -138,7 +135,7 @@ namespace CyanCor.ReSpekter
 
             var result = (VariableDefinition)resolver(subject, instruction, processor);
 
-            return result;
+            return new VariableDefinition(result.Name, processor.Body.Method.Module.Import(result.VariableType));
         }
 
         private static TypeReference ResolveAndImport(TypeReference subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
@@ -156,26 +153,112 @@ namespace CyanCor.ReSpekter
                 }
             }
 
-            var result = ((TypeReference)(resolver(subject, instruction, processor)));
+            var result = ((TypeReference)(resolver(subject, instruction, processor))).Resolve();
             return processor.Body.Method.Module.Import(result);
         }
 
         private static MethodReference ResolveAndImport(MethodReference subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
         {
-            var returnType = ResolveAndImport(subject.MethodReturnType.ReturnType, instruction, processor, resolver);
             var declaringType = ResolveAndImport(subject.DeclaringType, instruction, processor, resolver);
+            var declaringTypeResolved = declaringType.Resolve();
+            var resolved = subject.Resolve();
             var name = ResolveAndImport(subject.Name, instruction, processor, resolver);
 
-            foreach (var methodDefinition in declaringType.Resolve().GetMethods())
+            MethodDefinition method = null;
+            if (resolved.IsConstructor)
             {
-                if (methodDefinition.Name.Equals(name))
+                foreach (var methodDefinition in declaringTypeResolved.GetConstructors())
                 {
-                    return processor.Body.Method.Module.Import(methodDefinition);
+                    if (methodDefinition.Parameters.Count == resolved.Parameters.Count)
+                    {
+                        var equal = true;
+                        for (var i = 0; i < methodDefinition.Parameters.Count; i++)
+                        {
+                            if (!methodDefinition.Parameters[i].Equals(resolved.Parameters[i]))
+                            {
+                                equal = false;
+                            }
+                        }
+
+                        if (equal)
+                        {
+                            method = methodDefinition;
+                        }
+                    }
                 }
             }
-            
-            //var methodReference = new MethodReference(name, returnType, declaringType);
-            return declaringType.Resolve().GetMethods().Single(definition => definition.Name == name);
+            else
+            {
+                method = declaringTypeResolved.GetMethods().Single(definition => definition.Name.Equals(name)).Resolve();
+            }
+
+            var baseMethodReference = processor.Body.Method.Module.Import(method);
+
+            if (declaringType.IsGenericInstance)
+            {
+                var instanceType = (GenericInstanceType)declaringType;
+                baseMethodReference =
+                    baseMethodReference.MakeGeneric(
+                        instanceType.GenericArguments.Select(
+                            (reference => ResolveAndImport(reference, instruction, processor, resolver))).ToArray());
+
+            }
+
+            var genericMethod = subject as GenericInstanceMethod;
+
+            if (genericMethod != null)
+            {
+                var genericArguments = genericMethod.GenericArguments.Select(
+                    reference => ResolveAndImport(reference, instruction, processor, resolver));
+                var genMethod = new GenericInstanceMethod(baseMethodReference);
+                foreach (var genericArgument in genericArguments)
+                {
+                    genMethod.GenericArguments.Add(genericArgument);
+                }
+
+                baseMethodReference = genMethod;
+            }
+
+            return processor.Body.Method.Module.Import(baseMethodReference);
+        }
+
+        public static TypeReference MakeGenericType(this TypeReference self, params TypeReference[] arguments)
+        {
+            if (self.GenericParameters.Count != arguments.Length)
+            {
+                throw new ArgumentException();
+            }
+
+            var instance = new GenericInstanceType(self);
+            foreach (var argument in arguments)
+            {
+                instance.GenericArguments.Add(argument);
+            }
+
+            return instance;
+        }
+
+        public static MethodReference MakeGeneric(this MethodReference self, params TypeReference[] classArguments)
+        {
+            var reference = new MethodReference(self.Name, self.ReturnType)
+            {
+                DeclaringType = self.DeclaringType.MakeGenericType(classArguments),
+                HasThis = self.HasThis,
+                ExplicitThis = self.ExplicitThis,
+                CallingConvention = self.CallingConvention,
+            };
+
+            foreach (var parameter in self.Parameters)
+            {
+                reference.Parameters.Add(new ParameterDefinition(parameter.ParameterType));
+            }
+
+            foreach (var genericParameter in self.GenericParameters)
+            {
+                reference.GenericParameters.Add(new GenericParameter(genericParameter.Name, reference));
+            }
+
+            return reference;
         }
 
         private static string ResolveAndImport(string subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
@@ -183,57 +266,6 @@ namespace CyanCor.ReSpekter
             return (string)resolver(subject, instruction, processor);
         }
 
-        /*private static object Resolve(object subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
-        {
-            var method = subject as MethodReference;
-            var variable = subject as VariableDefinition;
-            var typeRef = subject as GenericInstanceType;
-            var fieldRef = subject as FieldReference;
-
-            if (subject is Instruction)
-            {
-                return null;
-            }
-
-            if (method != null)
-            {
-                var type = ((TypeReference)ResolveAndImport(method.DeclaringType, instruction, processor, resolver));
-                var returnType = ((TypeReference)ResolveAndImport(method.ReturnType, instruction, processor, resolver));
-                return new MethodReference(method.Name, returnType, type);
-            }
-
-            if (variable != null)
-            {
-                var localVariable =
-                    processor.Body.Variables.FirstOrDefault(definition => definition.Name.Equals(variable.Name));
-                if (localVariable != null)
-                {
-                    return localVariable;
-                }
-            }
-
-            if (typeRef != null)
-            {
-                var gens = typeRef.GenericArguments.Select(gen => (TypeReference)ResolveAndImport(gen, instruction, processor, resolver)).ToArray();
-                if (gens.Length > 0)
-                {
-                    var type = (TypeReference)ResolveAndImport(typeRef.GetElementType(), instruction, processor, resolver);
-                    return type.MakeGenericInstanceType(gens);
-                }
-                
-            }
-
-            if (fieldRef != null)
-            {
-                var fieldType = (TypeReference)ResolveAndImport(fieldRef.FieldType, instruction, processor, resolver);
-                var declaringType = (TypeReference)ResolveAndImport(fieldRef.DeclaringType, instruction, processor, resolver);
-                var fieldName = (string)ResolveAndImport(fieldRef.Name, instruction, processor, resolver);
-                fieldType = processor.Body.Method.Module.Import(fieldType);
-                return processor.Body.Method.Module.Import(new FieldReference(fieldName, fieldType, declaringType));
-            }
-
-            return resolver(subject, instruction, processor);
-        }*/
 
         public static Instruction Duplicate(this Instruction source, ILProcessor processor, ResolveOperandDelegate resolver)
         {
@@ -248,7 +280,8 @@ namespace CyanCor.ReSpekter
             }
 
             dynamic d = source.Operand;
-            return processor.Create(source.OpCode, ResolveAndImport(d, source, processor, resolver));
+            d = ResolveAndImport(d, source, processor, resolver);
+            return processor.Create(source.OpCode, d);
         }
     }
 }

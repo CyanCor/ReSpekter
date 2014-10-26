@@ -18,6 +18,11 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System.Diagnostics;
+using System.Globalization;
+using System.Reflection;
+using Mono.Cecil;
+
 namespace TestApp
 {
     using System;
@@ -33,15 +38,20 @@ namespace TestApp
         static void Main(string[] args)
         {
             var context = new Context();
-            if (context.Run(new object[] { args }))
+            if (context.Run(new object[] {args}))
             {
                 return;
             }
 
-            var test = new MyLittleTestClass();
-            var timer = new Timer(OnTimer, test, new TimeSpan(0, 0, 0, 0, 100), new TimeSpan(0, 0, 0, 0, 100));
-            
-            test.Run();
+            var definition = AssemblyDefinition.ReadAssembly("Playground.dll");
+
+            var asm = context.LoadAssembly(definition);
+            Debugger.Break();
+            asm.GetType("Playground.Program")
+                .GetMethod("Main", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
+                .Invoke(null, BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public, null, new object[]{args},
+                    CultureInfo.CurrentCulture);
+
         }
 
         private static void OnTimer(object state)

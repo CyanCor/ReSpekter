@@ -18,6 +18,8 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System.Linq;
+
 namespace CyanCor.ReSpekter
 {
     using System;
@@ -38,9 +40,15 @@ namespace CyanCor.ReSpekter
         private AppDomain _cloneDomain;
         private Context _clone;
         private List<IModifier> _modifiers = new List<IModifier>();
+        private static string _basePath;
         public AcceptanceFilter<AssemblyDefinition> AssemblyFilter { get; private set; }
         private List<string> _processedAssemblies = new List<string>();
         private Dictionary<string, string> _locationLookups = new Dictionary<string, string>();
+
+        public bool IsClone
+        {
+            get { return _isClone; }
+        }
 
         private void AssemblyReady(byte[] assembly)
         {
@@ -52,9 +60,18 @@ namespace CyanCor.ReSpekter
             var p = Assembly.GetCallingAssembly().Location;
             if (!string.IsNullOrEmpty(p))
             {
-                var basePath = Path.GetDirectoryName(p);
+                if (_basePath == null)
+                {
+                    _basePath = Path.GetDirectoryName(p);
+                }
                 AssemblyFilter = new AcceptanceFilter<AssemblyDefinition>();
-                AssemblyFilter.Whitelist.Add(subject => subject.MainModule.FullyQualifiedName.StartsWith(basePath));
+                AssemblyFilter.Whitelist.Add(
+
+                    subject =>
+                    {
+                        return subject.MainModule.FullyQualifiedName.StartsWith(_basePath);
+                    }
+                    );
                 AssemblyFilter.Blacklist.Add(subject => subject.MainModule.Name.Equals("vshost32.exe"));
                 AssemblyFilter.Blacklist.Add(subject => subject.MainModule.Name.Equals("Mono.Cecil.dll"));
                 _modifiers.Add(new LazyCompositionModifier());
@@ -78,7 +95,7 @@ namespace CyanCor.ReSpekter
         [MethodImpl(MethodImplOptions.NoInlining)]
         private bool RunInternal(object[] parameters, out object result)
         { 
-            if (_isClone)
+            if (IsClone)
             {
                 result = null;
                 return false;
@@ -92,6 +109,27 @@ namespace CyanCor.ReSpekter
             return true;
         }
 
+        public Assembly LoadAssembly(AssemblyDefinition definition)
+        {
+            ModifyAssembly(definition);
+            return Assembly.LoadFile(_locationLookups[definition.FullName]);
+        }
+
+        internal void Run(Assembly asm, object[] parameters)
+        {
+            foreach (var type in asm.GetTypes())
+            {
+                foreach (var method in type.GetMethods(BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Public))
+                {
+                    if (method.Name.Equals("Main"))
+                    {
+                        
+                    }
+                }
+            }
+                    
+        }
+
         private object RunClone(object[] parameters, MethodBase mainMethod)
         {
             _clone = _cloneDomain.CreateInstanceFromAndUnwrap(
@@ -103,7 +141,7 @@ namespace CyanCor.ReSpekter
                 _clone.AddResolve(locationLookup.Key, locationLookup.Value);
             }
 
-            return _clone.InvokeClone(mainMethod.DeclaringType.Assembly.FullName, mainMethod.DeclaringType.FullName, mainMethod.Name,
+            return _clone.InvokeClone(_basePath, mainMethod.DeclaringType.Assembly.FullName, mainMethod.DeclaringType.FullName, mainMethod.Name,
                 parameters);
         }
 
@@ -196,9 +234,10 @@ namespace CyanCor.ReSpekter
             }
         }
 
-        private object InvokeClone(string assemblyName, string typeName, string methodName, object[] parameters)
+        private object InvokeClone(string basePath, string assemblyName, string typeName, string methodName, object[] parameters)
         {
             _isClone = true;
+            _basePath = basePath;
 
             foreach (var locationLookup in _locationLookups)
             {
