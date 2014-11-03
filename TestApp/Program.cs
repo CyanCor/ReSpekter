@@ -43,6 +43,7 @@ namespace TestApp
                 return;
             }
 
+            /*
             var definition = AssemblyDefinition.ReadAssembly("Playground.dll");
 
             var asm = context.LoadAssembly(definition);
@@ -51,7 +52,12 @@ namespace TestApp
                 .GetMethod("Main", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
                 .Invoke(null, BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public, null, new object[]{args},
                     CultureInfo.CurrentCulture);
+            */
 
+            
+            MyLittleTestClass c = new MyLittleTestClass();
+            Timer timer = new Timer(OnTimer, c, 100, 100);
+            c.Run();
         }
 
         private static void OnTimer(object state)
@@ -60,7 +66,7 @@ namespace TestApp
             if (test.Dirty)
             {
                 test.Dirty = false;
-                Console.WriteLine(test.ImportantData + " persisted.");
+                Console.WriteLine("persisted.");
             }
         }
     }

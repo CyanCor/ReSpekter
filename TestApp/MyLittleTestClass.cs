@@ -21,51 +21,70 @@
 namespace TestApp
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using CyanCor.ReSpekter.Modifiers;
 
     internal class MyLittleTestClass : IDirty, ITypeResolver
     {
-        private bool _dirty;
-        public string ImportantData;
-        private string _testMemberUniqueIdentifier;
-
         public CompositeTest TestMember { get; set; }
+
+        private static Dictionary<string, IResolvableType<string>> _dictionary =
+            new Dictionary<string, IResolvableType<string>>();
 
         public void Run()
         {
             Debugger.Break();
-            TestMember = new CompositeTest();
             TestMember.TestMember = "blubb";
-
             Console.WriteLine(TestMember.TestMember);
             while (true)
             {
                 var s = Console.ReadLine();
-                if (ImportantData != s)
+                if (TestMember.TestMember != s)
                 {
-                    ImportantData = s;
+                    TestMember.TestMember = s;
                 }
             }
         }
 
-        public bool Dirty
-        {
-            get { return _dirty; }
-            set { _dirty = value; }
-        }
+        public bool Dirty { get; set; }
 
-        public TT ResolveType<TT, TI>(TI identifer) where TT : class, IResolvableType<TI>
+        public TT ResolveType<TT, TI>(TI identifier) where TT : class, IResolvableType<TI>
         {
-            var result = new CompositeTest() as TT;
-            return result;
+            if (typeof(TI) == typeof(string))
+            {
+                IResolvableType<string> result;
+                
+                if (((identifier as string) == null) ||(!_dictionary.TryGetValue(identifier as string, out result)))
+                {
+                    result = new CompositeTest();
+                    _dictionary.Add(result.UniqueIdentifier, result);
+                }
+
+                return result as TT;
+            }
+            else
+            {
+                return default (TT);
+            }
+
         }
     }
 
-    internal class CompositeTest : IResolvableType<string>
+    internal class CompositeTest : IRestable
     {
         public string UniqueIdentifier { get; private set; }
 
-        public string TestMember;
+        public string TestMember { get; set; }
+
+        public CompositeTest()
+        {
+            UniqueIdentifier = Guid.NewGuid().ToString();
+        }
+    }
+
+    internal interface IRestable : IResolvableType<string>
+    {
+
     }
 }

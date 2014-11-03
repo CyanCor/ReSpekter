@@ -116,6 +116,11 @@ namespace CyanCor.ReSpekter.Modifiers
                         {
                             return propType;
                         }
+
+                        case "ReferenceIdentifierTemplate":
+                        {
+                            return identifierType;
+                        }
                     }
                 }
 
@@ -171,6 +176,11 @@ namespace CyanCor.ReSpekter.Modifiers
                             {
                                 return propType;
                             }
+
+                        case "ReferenceIdentifierTemplate":
+                            {
+                                return identifierType;
+                            }
                     }
                 }
 
@@ -209,21 +219,32 @@ namespace CyanCor.ReSpekter.Modifiers
 
     internal class LazyCompositionTemplate : ITypeResolver
     {
-        private string _templatePropertyUniqueIdentifier;
-        private WeakReference<ResolvableTypeTemplate> _templatePropertyWeakReference;
+        private ReferenceIdentifierTemplate _templatePropertyUniqueIdentifier;
+        private WeakReference _templatePropertyWeakReference;
 
         public ResolvableTypeTemplate TemplateProperty
         {
             get
             {
+                if (_templatePropertyWeakReference == null)
+                {
+                    _templatePropertyWeakReference = new WeakReference(null);
+                }
+
                 ResolvableTypeTemplate obj;
-                if (_templatePropertyWeakReference.TryGetTarget(out obj))
+                obj = _templatePropertyWeakReference.Target as ResolvableTypeTemplate;
+                if (obj != null)
                 {
                     return obj;
                 }
 
-                obj = ResolveType<ResolvableTypeTemplate, string>(_templatePropertyUniqueIdentifier);
-                _templatePropertyWeakReference.SetTarget(obj);
+                obj = ResolveType<ResolvableTypeTemplate, ReferenceIdentifierTemplate>(_templatePropertyUniqueIdentifier);
+                if (obj != null)
+                {
+                    _templatePropertyUniqueIdentifier = obj.UniqueIdentifier;
+                }
+
+                _templatePropertyWeakReference.Target = obj;
                 return obj;
             }
 
@@ -231,29 +252,45 @@ namespace CyanCor.ReSpekter.Modifiers
             {
                 if (_templatePropertyWeakReference == null)
                 {
-                    _templatePropertyWeakReference = new WeakReference<ResolvableTypeTemplate>(value);
+                    _templatePropertyWeakReference = new WeakReference(value);
                 }
                 else
                 {
-                    _templatePropertyWeakReference.SetTarget(value);
+                    _templatePropertyWeakReference.Target = value;
                 }
 
                 if (value != null)
                 {
                     _templatePropertyUniqueIdentifier = value.UniqueIdentifier;
                 }
+                else
+                {
+                    _templatePropertyUniqueIdentifier = null;
+                }
             }
         }
 
-        public TT ResolveType<TT, TI>(TI identifer) where TT : class, IResolvableType<TI>
+        public TT ResolveType<TT, TI>(TI identifier) where TT : class, IResolvableType<TI>
         {
             return null;
         }
     }
 
-    internal class ResolvableTypeTemplate : IResolvableType<string>
+    internal class ReferenceIdentifierTemplate
     {
-        public string UniqueIdentifier { get; private set; }
+    }
+
+    internal static class ObjectFactory
+    {
+        public static T GetObject<T, T1>(T1 templatePropertyUniqueIdentifier)
+        {
+            return default(T);
+        }
+    }
+
+    internal class ResolvableTypeTemplate : IResolvableType<ReferenceIdentifierTemplate>
+    {
+        public ReferenceIdentifierTemplate UniqueIdentifier { get; private set; }
 
         public string TestMember;
     }

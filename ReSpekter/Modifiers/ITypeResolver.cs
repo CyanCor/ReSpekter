@@ -22,6 +22,6 @@ namespace CyanCor.ReSpekter.Modifiers
 {
     public interface ITypeResolver
     {
-        TT ResolveType<TT, TI>(TI identifer) where TT : class, IResolvableType<TI>;
+        TT ResolveType<TT, TI>(TI identifier) where TT : class, IResolvableType<TI>;
     }
 }

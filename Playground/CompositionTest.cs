@@ -18,10 +18,10 @@ namespace Playground
 
         public CompositionTest TestMember2 { get; set; }
 
-        public TT ResolveType<TT, TI>(TI identifer) where TT : class, IResolvableType<TI>
+        public TT ResolveType<TT, TI>(TI identifier) where TT : class, IResolvableType<TI>
         {
             object result;
-            _dictionary.TryGetValue(identifer.ToString(), out result);
+            _dictionary.TryGetValue(identifier.ToString(), out result);
             return result as TT;
         }
 
