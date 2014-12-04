@@ -61,7 +61,7 @@ namespace CyanCor.ReSpekter.Modifiers
             var template = property.Module.Import(typeof(LazyCompositionTemplate)).Resolve();
             var templateProp = template.Properties.Single(definition => definition.Name.Equals("TemplateProperty"));
 
-            var uniqueIdentifier = new FieldDefinition("_uniqueIdentifier" + property.Name, FieldAttributes.Private, identifierType);
+            var uniqueIdentifier = new FieldDefinition("_uniqueIdentifier" + property.Name, FieldAttributes.Public, identifierType);
             property.DeclaringType.Fields.Add(uniqueIdentifier);
 
             //var weakReferenceType = property.Module.Import(typeof(WeakReference<>)).MakeGenericInstanceType(propType);
@@ -219,8 +219,8 @@ namespace CyanCor.ReSpekter.Modifiers
 
     internal class LazyCompositionTemplate : ITypeResolver
     {
-        private ReferenceIdentifierTemplate _templatePropertyUniqueIdentifier;
-        private WeakReference _templatePropertyWeakReference;
+        public ReferenceIdentifierTemplate _templatePropertyUniqueIdentifier;
+        public WeakReference _templatePropertyWeakReference;
 
         public ResolvableTypeTemplate TemplateProperty
         {

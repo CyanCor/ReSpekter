@@ -46,7 +46,8 @@ namespace CyanCor.ReSpekter
         {
             var tdef = type.Resolve();
             return (tdef.Interfaces.Any(i => CompareInterfaces(i, iface))
-                    || tdef.NestedTypes.Any(t => HasInterface(t, iface)));
+                    || tdef.NestedTypes.Any(t => HasInterface(t, iface)))
+                   || ((tdef.BaseType != null) && (tdef.BaseType.HasInterface(iface)));
         }
 
         private static bool CompareInterfaces(TypeReference i, TypeReference iref)
@@ -189,7 +190,7 @@ namespace CyanCor.ReSpekter
             }
             else
             {
-                method = declaringTypeResolved.GetMethods().Single(definition => definition.Name.Equals(name)).Resolve();
+                method = ResolveMethod(declaringTypeResolved, name);
             }
 
             var baseMethodReference = processor.Body.Method.Module.Import(method);
@@ -220,6 +221,19 @@ namespace CyanCor.ReSpekter
             }
 
             return processor.Body.Method.Module.Import(baseMethodReference);
+        }
+
+        private static MethodDefinition ResolveMethod(TypeDefinition declaringTypeResolved, string name)
+        {
+            var method = declaringTypeResolved.GetMethods().FirstOrDefault(definition => definition.Name.Equals(name));
+            if (method == null)
+            {
+                if (declaringTypeResolved.BaseType != null)
+                {
+                    method = ResolveMethod(declaringTypeResolved.BaseType.Resolve(), name);
+                }
+            }
+            return method.Resolve();
         }
 
         public static TypeReference MakeGenericType(this TypeReference self, params TypeReference[] arguments)
