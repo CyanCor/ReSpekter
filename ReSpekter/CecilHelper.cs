@@ -38,6 +38,7 @@ namespace CyanCor.ReSpekter
 
         public static bool HasInterface(this TypeReference type, Type iface)
         {
+
             var iref = type.Module.Import(iface);
             return HasInterface(type, iref);
         }
@@ -46,8 +47,7 @@ namespace CyanCor.ReSpekter
         {
             var tdef = type.Resolve();
             return (tdef.Interfaces.Any(i => CompareInterfaces(i, iface))
-                    || tdef.NestedTypes.Any(t => HasInterface(t, iface)))
-                   || ((tdef.BaseType != null) && (tdef.BaseType.HasInterface(iface)));
+                    || ((tdef.BaseType != null) && (tdef.BaseType.HasInterface(iface))));
         }
 
         private static bool CompareInterfaces(TypeReference i, TypeReference iref)
