@@ -29,7 +29,7 @@ namespace CyanCor.ReSpekter.Helper
             _templateProp = _template.Properties.Single(definition => definition.Name.Equals(me.Member.Name));
 
             _templateProp.GetMethod.Body.Duplicate(target.GetMethod.Body, Resolver);
-            _templateProp.GetMethod.Body.Duplicate(target.SetMethod.Body, Resolver);
+            _templateProp.SetMethod.Body.Duplicate(target.SetMethod.Body, Resolver);
         }
 
         private object Resolver(object subject, Instruction instruction, ILProcessor processor)

@@ -95,7 +95,13 @@ namespace CyanCor.ReSpekter
 
             foreach (var instruction in instructionList)
             {
-                il.Append(instruction.Duplicate(il, localResolver));
+                var duplicate = instruction.Duplicate(il, localResolver);
+                duplicate.Offset = instruction.Offset;
+                if (duplicate.ToString().Substring(8) != instruction.ToString().Substring(8))
+                {
+
+                }
+                il.Append(duplicate);
             }
 
             for (var i = 0; i < instructionList.Length; i++)
@@ -107,8 +113,9 @@ namespace CyanCor.ReSpekter
                     {
                         if (instructionList[a] == jumpTarget)
                         {
-                            il.Replace(il.Body.Instructions[i],
-                                il.Create(instructionList[i].OpCode, il.Body.Instructions[a]));
+                            var instruction = il.Create(instructionList[i].OpCode, il.Body.Instructions[a]);
+                            instruction.Offset = il.Body.Instructions[i].Offset;
+                            il.Replace(il.Body.Instructions[i], instruction);
                         }
                     }
                 }
