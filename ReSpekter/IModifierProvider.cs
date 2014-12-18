@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ReSpektedAttribute.cs" company="CyanCor GmbH">
+// <copyright file="IModifierProvider.cs" company="CyanCor GmbH">
 //   Copyright (c) 2014 CyanCor GmbH
 //   
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,15 +14,16 @@
 //   See the License for the specific language governing permissions and limitations under the License.
 // </copyright>
 // <summary>
-//   Defines the NoReSpektorAttribute type.
+//   Defines the IModifierProvider type.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace CyanCor.ReSpekter
 {
-    using System;
+    using System.Collections.Generic;
 
-    public class NoReSpektorAttribute : Attribute
+    interface IModifierProvider
     {
+        IEnumerable<BaseModifier> GetModifiers();
     }
 }

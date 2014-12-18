@@ -1,5 +1,5 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ITypeResolver.cs" company="CyanCor GmbH">
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="NoReSpekterAttribute.cs" company="CyanCor GmbH">
 //   Copyright (c) 2014 CyanCor GmbH
 //   
 //   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,14 +14,18 @@
 //   See the License for the specific language governing permissions and limitations under the License.
 // </copyright>
 // <summary>
-//   Defines the ITypeResolver type.
+//   Defines the NoReSpekterAttribute type.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace CyanCor.ReSpekter.Modifiers
+namespace CyanCor.ReSpekter
 {
-    public interface ITypeResolver
+    using System;
+
+    public class NoReSpekterAttribute : Attribute
     {
-        TT ResolveType<TT, TI>(TI identifier) where TT : class, IResolvableType<TI>;
+        public NoReSpekterAttribute()
+        {
+        }
     }
 }

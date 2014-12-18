@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.CompilerServices.SymbolWriter;
 
 namespace CyanCor.ReSpekter
 {
@@ -16,7 +18,7 @@ namespace CyanCor.ReSpekter
 
         private Dictionary<OpCode, InstructionCloneDelegate> _cloneDelegates = new Dictionary<OpCode, InstructionCloneDelegate>();
 
-        internal BaseModifier()
+        protected BaseModifier()
         {
             AssemblyAcceptor = new AcceptanceFilter<AssemblyDefinition>();
             ModuleAcceptor = new AcceptanceFilter<ModuleDefinition>();
@@ -42,7 +44,11 @@ namespace CyanCor.ReSpekter
         {
             foreach (var typeDefinition in module.Types)
             {
-                Visit(typeDefinition);
+                if (!typeDefinition.CustomAttributes.Any(
+                        attribute => attribute.AttributeType.FullName.Equals(typeof (NoReSpekterAttribute).FullName)))
+                {
+                    Visit(typeDefinition);
+                }
             }
         }
 
@@ -50,17 +56,29 @@ namespace CyanCor.ReSpekter
         {
             foreach (var property in type.Properties)
             {
-                Visit(property);
+                if (!property.CustomAttributes.Any(
+                        attribute => attribute.AttributeType.FullName.Equals(typeof(NoReSpekterAttribute).FullName)))
+                {
+                    Visit(property);
+                }
             }
 
             foreach (var method in type.Methods)
             {
-                Visit(method);
+                if (!method.CustomAttributes.Any(
+                        attribute => attribute.AttributeType.FullName.Equals(typeof(NoReSpekterAttribute).FullName)))
+                {
+                    Visit(method);
+                }
             }
 
             foreach (var field in type.Fields)
             {
-                Visit(field);
+                if (!field.CustomAttributes.Any(
+                        attribute => attribute.AttributeType.FullName.Equals(typeof(NoReSpekterAttribute).FullName)))
+                {
+                    Visit(field);
+                }
             }
 
         }

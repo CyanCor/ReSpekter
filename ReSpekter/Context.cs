@@ -55,6 +55,11 @@ namespace CyanCor.ReSpekter
             _cloneDomain.Load(assembly);
         }
 
+        public void AddModifier(IModifier modifier)
+        {
+            _modifiers.Add(modifier);
+        }
+
         public Context()
         {
             var p = Assembly.GetCallingAssembly().Location;
@@ -66,16 +71,14 @@ namespace CyanCor.ReSpekter
                 }
                 AssemblyFilter = new AcceptanceFilter<AssemblyDefinition>();
                 AssemblyFilter.Whitelist.Add(
-
                     subject =>
                     {
                         return subject.MainModule.FullyQualifiedName.StartsWith(_basePath);
                     }
-                    );
+                );
+
                 AssemblyFilter.Blacklist.Add(subject => subject.MainModule.Name.Equals("vshost32.exe"));
                 AssemblyFilter.Blacklist.Add(subject => subject.MainModule.Name.Equals("Mono.Cecil.dll"));
-                _modifiers.Add(new LazyCompositionModifier());
-                _modifiers.Add(new DirtyModifier());
             }
         }
 

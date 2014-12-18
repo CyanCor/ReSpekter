@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -14,6 +15,7 @@ namespace CyanCor.ReSpekter.Helper
         private PropertyDefinition _target;
 
         private Dictionary<string, TypeReference> _typeTransformations = new Dictionary<string, TypeReference>();
+        private Dictionary<string, string> _stringTransformations = new Dictionary<string, string>();
 
         public void DuplicateTemplate<T>(Expression<Func<T>> source, PropertyDefinition target)
         {
@@ -30,6 +32,16 @@ namespace CyanCor.ReSpekter.Helper
 
             _templateProp.GetMethod.Body.Duplicate(target.GetMethod.Body, Resolver);
             _templateProp.SetMethod.Body.Duplicate(target.SetMethod.Body, Resolver);
+
+            AddCustomAttributes();
+        }
+
+        private void AddCustomAttributes()
+        {
+            foreach (var customAttribute in _templateProp.CustomAttributes)
+            {
+                _target.CustomAttributes.Add(customAttribute.Duplicate(_target.Module, Resolver));
+            }
         }
 
         private object Resolver(object subject, Instruction instruction, ILProcessor processor)
@@ -43,7 +55,10 @@ namespace CyanCor.ReSpekter.Helper
             var name = subject as string;
             if (name != null)
             {
-                
+                if (_stringTransformations.TryGetValue(name, out name))
+                {
+                    return name;
+                }
             }
 
             var fieldRef = subject as FieldReference;
@@ -112,6 +127,12 @@ namespace CyanCor.ReSpekter.Helper
             {
                 var fieldDefinition = new FieldDefinition(fieldRef.Name + _target.Name, fieldRef.Resolve().Attributes, ResolveTypeReference(fieldRef.FieldType));
                 _target.DeclaringType.Fields.Add(fieldDefinition);
+
+                foreach (var customAttribute in fieldRef.Resolve().CustomAttributes)
+                {
+                    fieldDefinition.CustomAttributes.Add(customAttribute.Duplicate(_target.Module, Resolver));
+                }
+
                 return fieldDefinition;
             }
 
@@ -121,6 +142,11 @@ namespace CyanCor.ReSpekter.Helper
         public void AddTransformation(Type source, TypeReference target)
         {
             _typeTransformations.Add(source.Name, target);
+        }
+
+        public void AddTransformation(string source, string target)
+        {
+            _stringTransformations.Add(source, target);
         }
     }
 }
