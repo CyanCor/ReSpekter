@@ -18,8 +18,6 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-using System.Linq;
-
 namespace CyanCor.ReSpekter
 {
     using System;
@@ -41,7 +39,6 @@ namespace CyanCor.ReSpekter
         private List<IModifier> _modifiers = new List<IModifier>();
         private static string _basePath;
         public AcceptanceFilter<AssemblyDefinition> AssemblyFilter { get; private set; }
-        private List<string> _processedAssemblies = new List<string>();
         private Dictionary<string, string> _locationLookups = new Dictionary<string, string>();
 
         public bool IsClone
@@ -68,13 +65,10 @@ namespace CyanCor.ReSpekter
                 {
                     _basePath = Path.GetDirectoryName(p);
                 }
+
                 AssemblyFilter = new AcceptanceFilter<AssemblyDefinition>();
                 AssemblyFilter.Whitelist.Add(
-                    subject =>
-                    {
-                        return subject.MainModule.FullyQualifiedName.StartsWith(_basePath);
-                    }
-                );
+                    subject => subject.MainModule.FullyQualifiedName.StartsWith(_basePath));
 
                 AssemblyFilter.Blacklist.Add(subject => subject.MainModule.Name.Equals("vshost32.exe"));
                 AssemblyFilter.Blacklist.Add(subject => subject.MainModule.Name.Equals("Mono.Cecil.dll"));
@@ -114,13 +108,15 @@ namespace CyanCor.ReSpekter
         public Assembly LoadAssembly(string path)
         {
             var def = AssemblyDefinition.ReadAssembly(path);
-            string filename;
-            if (!_locationLookups.TryGetValue(def.FullName, out filename))
+            ModifyAssembly(def);
+
+            string newPath;
+            if (!_locationLookups.TryGetValue(def.FullName, out newPath))
             {
-                filename = path;
+                newPath = path;
             }
 
-            return Assembly.LoadFile(filename);
+            return Assembly.LoadFile(newPath);
         }
 
         internal void Run(Assembly asm, object[] parameters)
@@ -149,8 +145,7 @@ namespace CyanCor.ReSpekter
                 _clone.AddResolve(locationLookup.Key, locationLookup.Value);
             }
 
-            return _clone.InvokeClone(_basePath, mainMethod.DeclaringType.Assembly.FullName, mainMethod.DeclaringType.FullName, mainMethod.Name,
-                parameters);
+            return _clone.InvokeClone(_basePath, mainMethod.DeclaringType.Assembly.FullName, mainMethod.DeclaringType.FullName, mainMethod.Name, parameters);
         }
 
         private void ModifyAssemblies()
@@ -187,6 +182,7 @@ namespace CyanCor.ReSpekter
             {
                 throw new ReSpekterException("Run cannot be called from constructors.");
             }
+
             return mainMethod;
         }
 

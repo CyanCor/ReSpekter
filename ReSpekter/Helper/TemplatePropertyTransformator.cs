@@ -49,7 +49,7 @@ namespace CyanCor.ReSpekter.Helper
             var typeRef = subject as TypeReference;
             if (typeRef != null)
             {
-                return ResolveTypeReference(typeRef);
+                return _target.Module.Import(ResolveTypeReference(typeRef)).Resolve();
             }
 
             var name = subject as string;
@@ -106,7 +106,7 @@ namespace CyanCor.ReSpekter.Helper
                 return reference;
             }
 
-            return _target.Module.Import(typeRef);
+            return typeRef;
         }
 
         private FieldReference FindField(FieldReference fieldRef)
@@ -125,7 +125,8 @@ namespace CyanCor.ReSpekter.Helper
 
             if (result == null)
             {
-                var fieldDefinition = new FieldDefinition(fieldRef.Name + _target.Name, fieldRef.Resolve().Attributes, ResolveTypeReference(fieldRef.FieldType));
+                var type = _target.Module.Import(ResolveTypeReference(fieldRef.FieldType));
+                var fieldDefinition = new FieldDefinition(fieldRef.Name + _target.Name, fieldRef.Resolve().Attributes, type);
                 _target.DeclaringType.Fields.Add(fieldDefinition);
 
                 foreach (var customAttribute in fieldRef.Resolve().CustomAttributes)

@@ -125,7 +125,6 @@ namespace CyanCor.ReSpekter
         private static object ResolveAndImport(FieldReference subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
         {
             var name = ResolveAndImport(subject.Name, instruction, processor, resolver);
-            var fieldType = ResolveAndImport(subject.FieldType, instruction, processor, resolver);
             var declaringType = ResolveAndImport(subject.DeclaringType, instruction, processor, resolver).Resolve();
 
             var field = declaringType.Resolve().Fields.Single(definition => definition.Name.Equals(name)).Resolve();
@@ -162,7 +161,7 @@ namespace CyanCor.ReSpekter
             }
 
             var result = ((TypeReference)(resolver(subject, instruction, processor))).Resolve();
-            return processor.Body.Method.Module.Import(result);
+            return processor.Body.Method.Module.Import(result.Resolve());
         }
 
         private static MethodReference ResolveAndImport(MethodReference subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)

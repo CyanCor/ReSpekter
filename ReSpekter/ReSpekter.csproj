@@ -67,7 +67,6 @@
     <Compile Include="Exception\TypeNotFoundException.cs" />
     <Compile Include="Helper\AttributeHelper.cs" />
     <Compile Include="Helper\TemplatePropertyTransformator.cs" />
-    <Compile Include="Helper\TransformationHelper.cs" />
     <Compile Include="IFilter.cs" />
     <Compile Include="IModifier.cs" />
     <Compile Include="IModifierProvider.cs" />
