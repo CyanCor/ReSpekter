@@ -28,7 +28,6 @@ namespace CyanCor.ReSpekter
     using System.IO;
     using System.Reflection;
     using System.Runtime.CompilerServices;
-    using Modifiers;
     using Mono.Cecil;
     using Mono.Cecil.Pdb;
     using global::ReSpekter.Exception;
@@ -112,10 +111,16 @@ namespace CyanCor.ReSpekter
             return true;
         }
 
-        public Assembly LoadAssembly(AssemblyDefinition definition)
+        public Assembly LoadAssembly(string path)
         {
-            ModifyAssembly(definition);
-            return Assembly.LoadFile(_locationLookups[definition.FullName]);
+            var def = AssemblyDefinition.ReadAssembly(path);
+            string filename;
+            if (!_locationLookups.TryGetValue(def.FullName, out filename))
+            {
+                filename = path;
+            }
+
+            return Assembly.LoadFile(filename);
         }
 
         internal void Run(Assembly asm, object[] parameters)
