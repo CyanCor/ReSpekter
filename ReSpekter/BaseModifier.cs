@@ -18,6 +18,8 @@ namespace CyanCor.ReSpekter
 
         private Dictionary<OpCode, InstructionCloneDelegate> _cloneDelegates = new Dictionary<OpCode, InstructionCloneDelegate>();
 
+        protected List<PropertyDefinition> _newProperties = new List<PropertyDefinition>();
+
         protected BaseModifier()
         {
             AssemblyAcceptor = new AcceptanceFilter<AssemblyDefinition>();
@@ -61,6 +63,12 @@ namespace CyanCor.ReSpekter
                 {
                     Visit(property);
                 }
+            }
+
+            foreach (var propertyDefinition in _newProperties)
+            {
+                propertyDefinition.DeclaringType = null;
+                type.Properties.Add(propertyDefinition);
             }
 
             foreach (var method in type.Methods)

@@ -122,7 +122,7 @@ namespace CyanCor.ReSpekter
             }
         }
 
-        private static object ResolveAndImport(FieldReference subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
+        public static object ResolveAndImport(FieldReference subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
         {
             var name = ResolveAndImport(subject.Name, instruction, processor, resolver);
             var declaringType = ResolveAndImport(subject.DeclaringType, instruction, processor, resolver).Resolve();
@@ -132,7 +132,7 @@ namespace CyanCor.ReSpekter
             return processor.Body.Method.Module.Import(field);
         }
 
-        private static VariableDefinition ResolveAndImport(VariableDefinition subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
+        public static VariableDefinition ResolveAndImport(VariableDefinition subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
         {
             var localVariable = processor.Body.Variables.FirstOrDefault(definition => definition.Name.Equals(subject.Name));
             if (localVariable != null)
@@ -145,7 +145,7 @@ namespace CyanCor.ReSpekter
             return new VariableDefinition(result.Name, processor.Body.Method.Module.Import(result.VariableType));
         }
 
-        private static TypeReference ResolveAndImport(TypeReference subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
+        public static TypeReference ResolveAndImport(TypeReference subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
         {
             var genType = subject as GenericInstanceType;
 
@@ -161,10 +161,10 @@ namespace CyanCor.ReSpekter
             }
 
             var result = ((TypeReference)(resolver(subject, instruction, processor))).Resolve();
-            return processor.Body.Method.Module.Import(result.Resolve());
+            return processor.Body.Method.DeclaringType.Module.Import(result.Resolve());
         }
 
-        private static MethodReference ResolveAndImport(MethodReference subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
+        public static MethodReference ResolveAndImport(MethodReference subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
         {
             var declaringType = ResolveAndImport(subject.DeclaringType, instruction, processor, resolver);
             var declaringTypeResolved = declaringType.Resolve();
@@ -281,7 +281,7 @@ namespace CyanCor.ReSpekter
             return reference;
         }
 
-        private static string ResolveAndImport(string subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
+        public static string ResolveAndImport(string subject, Instruction instruction, ILProcessor processor, ResolveOperandDelegate resolver)
         {
             return (string)resolver(subject, instruction, processor);
         }

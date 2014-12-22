@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 
 namespace CyanCor.ReSpekter.Helper
 {
@@ -30,8 +31,20 @@ namespace CyanCor.ReSpekter.Helper
             _template = target.Module.Import(me.Member.DeclaringType).Resolve();
             _templateProp = _template.Properties.Single(definition => definition.Name.Equals(me.Member.Name));
 
-            _templateProp.GetMethod.Body.Duplicate(target.GetMethod.Body, Resolver);
-            _templateProp.SetMethod.Body.Duplicate(target.SetMethod.Body, Resolver);
+            if (target.GetMethod != null)
+            {
+                if (_templateProp.GetMethod != null)
+                {
+                    _templateProp.GetMethod.Body.Duplicate(target.GetMethod.Body, Resolver);
+                }
+            }
+            if (target.SetMethod != null)
+            {
+                if (_templateProp.SetMethod != null)
+                {
+                    _templateProp.SetMethod.Body.Duplicate(target.SetMethod.Body, Resolver);
+                }
+            }
 
             AddCustomAttributes();
         }
@@ -52,15 +65,6 @@ namespace CyanCor.ReSpekter.Helper
                 return _target.Module.Import(ResolveTypeReference(typeRef)).Resolve();
             }
 
-            var name = subject as string;
-            if (name != null)
-            {
-                if (_stringTransformations.TryGetValue(name, out name))
-                {
-                    return name;
-                }
-            }
-
             var fieldRef = subject as FieldReference;
             if (fieldRef == null && instruction != null)
             {
@@ -71,6 +75,15 @@ namespace CyanCor.ReSpekter.Helper
                     {
                         return FindField(fieldRef).Name;
                     }
+                }
+            }
+
+            var name = subject as string;
+            if (name != null)
+            {
+                if (_stringTransformations.TryGetValue(name, out name))
+                {
+                    return name;
                 }
             }
 
@@ -111,13 +124,9 @@ namespace CyanCor.ReSpekter.Helper
 
         private FieldReference FindField(FieldReference fieldRef)
         {
-            var result = _target.DeclaringType.Fields.FirstOrDefault(definition => definition.Name == fieldRef.Name);
-            if (result != null)
-            {
-                return result;
-            }
+            var name = Resolver(fieldRef.Name, null, null) as string;
 
-            result = _target.DeclaringType.Fields.FirstOrDefault(definition => definition.Name == fieldRef.Name + _target.Name);
+            var result = _target.DeclaringType.Fields.FirstOrDefault(definition => definition.Name == name);
             if (result != null)
             {
                 return result;
@@ -125,7 +134,7 @@ namespace CyanCor.ReSpekter.Helper
 
             if (result == null)
             {
-                var type = _target.Module.Import(ResolveTypeReference(fieldRef.FieldType));
+                var type = _target.Module.Import(CecilHelper.ResolveAndImport(fieldRef.FieldType, null, _target.GetMethod.Body.GetILProcessor(), Resolver));
                 var fieldDefinition = new FieldDefinition(fieldRef.Name + _target.Name, fieldRef.Resolve().Attributes, type);
                 _target.DeclaringType.Fields.Add(fieldDefinition);
 
