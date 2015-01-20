@@ -14,7 +14,12 @@ namespace CyanCor.ReSpekter
 
         private Dictionary<OpCode, InstructionCloneDelegate> _cloneDelegates = new Dictionary<OpCode, InstructionCloneDelegate>();
 
-        protected List<PropertyDefinition> NewProperties = new List<PropertyDefinition>();
+        private readonly List<PropertyDefinition> _newProperties = new List<PropertyDefinition>();
+
+        protected List<PropertyDefinition> NewProperties
+        {
+            get { return _newProperties; }
+        }
 
         protected BaseModifier()
         {
@@ -61,7 +66,7 @@ namespace CyanCor.ReSpekter
                 }
             }
 
-            foreach (var propertyDefinition in NewProperties)
+            foreach (var propertyDefinition in _newProperties)
             {
                 propertyDefinition.DeclaringType = null;
                 type.Properties.Add(propertyDefinition);
