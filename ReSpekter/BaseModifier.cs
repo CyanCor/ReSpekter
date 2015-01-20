@@ -1,11 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Mono.CompilerServices.SymbolWriter;
 
 namespace CyanCor.ReSpekter
 {
@@ -18,7 +14,7 @@ namespace CyanCor.ReSpekter
 
         private Dictionary<OpCode, InstructionCloneDelegate> _cloneDelegates = new Dictionary<OpCode, InstructionCloneDelegate>();
 
-        protected readonly List<PropertyDefinition> NewProperties = new List<PropertyDefinition>();
+        protected List<PropertyDefinition> NewProperties = new List<PropertyDefinition>();
 
         protected BaseModifier()
         {
