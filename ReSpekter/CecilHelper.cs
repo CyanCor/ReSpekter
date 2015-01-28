@@ -18,6 +18,8 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
+using Mono.Collections.Generic;
+
 namespace CyanCor.ReSpekter
 {
     using System;
@@ -66,6 +68,42 @@ namespace CyanCor.ReSpekter
 
             return result;
         }
+
+        public static bool HasCustomAttribute(this PropertyDefinition property, Type attribute)
+        {
+            return HasCustomAttribute(property.CustomAttributes, property.Module.Import(attribute));
+        }
+
+        private static bool HasCustomAttribute(IEnumerable<CustomAttribute> customAttributes, TypeReference attribute)
+        {
+            foreach (var customAttribute in customAttributes)
+            {
+                if (customAttribute.AttributeType.IsAssignableTo(attribute))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsAssignableTo(this TypeReference type, TypeReference target)
+        {
+            if (type.FullName.Equals(target.FullName))
+            {
+                return true;
+            }
+
+            if (type.HasInterface(target))
+            {
+                return true;
+            }
+
+            var t = type.Resolve().BaseType;
+
+            return t != null && t.IsAssignableTo(target);
+        }
+
 
         private static bool CompareInterfaces(TypeReference i, TypeReference iref)
         {
