@@ -73,6 +73,10 @@ namespace CyanCor.ReSpekter
         {
             return HasCustomAttribute(property.CustomAttributes, property.Module.Import(attribute));
         }
+        public static bool HasCustomAttribute(this MethodDefinition method, Type attribute)
+        {
+            return HasCustomAttribute(method.CustomAttributes, method.Module.Import(attribute));
+        }
 
         private static bool HasCustomAttribute(IEnumerable<CustomAttribute> customAttributes, TypeReference attribute)
         {

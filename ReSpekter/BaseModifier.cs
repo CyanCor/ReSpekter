@@ -71,6 +71,7 @@ namespace CyanCor.ReSpekter
                 propertyDefinition.DeclaringType = null;
                 type.Properties.Add(propertyDefinition);
             }
+            _newProperties.Clear();
 
             foreach (var method in type.Methods)
             {
