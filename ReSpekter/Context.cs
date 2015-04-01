@@ -18,6 +18,9 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System.Linq;
+using Mono.Cecil.Rocks;
+
 namespace CyanCor.ReSpekter
 {
     using System;
@@ -217,9 +220,31 @@ namespace CyanCor.ReSpekter
             {
                 if (AssemblyFilter.Check(assembly))
                 {
+                    foreach (var module in assembly.Modules)
+                    {
+                        foreach (var typeDefinition in module.GetTypes())
+                        {
+                            foreach (var method in typeDefinition.Methods.Where(definition => definition.Body != null))
+                            {
+                                method.Body.SimplifyMacros();
+                            }
+                        }
+                    }
+
                     foreach (var modifier in _modifiers)
                     {
                         modifier.Visit(assembly);
+                    }
+
+                    foreach (var module in assembly.Modules)
+                    {
+                        foreach (var typeDefinition in module.GetTypes())
+                        {
+                            foreach (var method in typeDefinition.Methods.Where(definition => definition.Body != null))
+                            {
+                                //method.Body.OptimizeMacros();
+                            }
+                        }
                     }
                     
                     Directory.CreateDirectory("ReSpekted");
