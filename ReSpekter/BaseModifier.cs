@@ -57,6 +57,15 @@ namespace CyanCor.ReSpekter
 
         protected virtual void Visit(TypeDefinition type)
         {
+            foreach (var t in type.NestedTypes)
+            {
+                if (!t.CustomAttributes.Any(
+                        attribute => attribute.AttributeType.FullName.Equals(typeof(NoReSpekterAttribute).FullName)))
+                {
+                    Visit(t);
+                }
+            }
+
             foreach (var property in type.Properties)
             {
                 if (!property.CustomAttributes.Any(

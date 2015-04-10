@@ -242,7 +242,8 @@ namespace CyanCor.ReSpekter
                         {
                             foreach (var method in typeDefinition.Methods.Where(definition => definition.Body != null))
                             {
-                                //method.Body.OptimizeMacros();
+                                method.Body.SimplifyMacros();
+                                method.Body.OptimizeMacros();
                             }
                         }
                     }
