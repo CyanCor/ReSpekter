@@ -50,13 +50,39 @@ namespace CyanCor.ReSpekter
 
         public static TypeReference GetInterface(this TypeReference type, Type iface)
         {
+            if (type == null)
+            {
+                return null;
+            }
+            if (iface == null)
+            {
+                return null;
+            }
             var iref = type.Module.Import(iface);
             return GetInterface(type, iref);
         }
 
         public static TypeReference GetInterface(this TypeReference type, TypeReference iface)
         {
+            if (type == null)
+            {
+                return null;
+            }
+            if (iface == null)
+            {
+                return null;
+            }
+
             var tdef = type.Resolve();
+            if (tdef == null)
+            {
+                Console.WriteLine("Strange: " + type.Name + " cannot be resolved.");
+                return null;
+            }
+            if (tdef.Interfaces == null)
+            {
+                return null;
+            }
             var result = tdef.Interfaces.FirstOrDefault(i => CompareInterfaces(i, iface));
             if (result == null)
             {

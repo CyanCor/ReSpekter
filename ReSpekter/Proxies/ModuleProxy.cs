@@ -11,6 +11,7 @@ namespace CyanCor.ReSpekter.Proxies
             ModuleDefinition = moduleDefinition;
             _assembly = assembly;
         }
+        
 
         internal ModuleDefinition ModuleDefinition { get; set; }
     }

@@ -51,11 +51,12 @@ namespace CyanCor.ReSpekter
                         attribute => attribute.AttributeType.FullName.Equals(typeof (NoReSpekterAttribute).FullName)))
                 {
                     Visit(typeDefinition);
+                    VisitNestedTypes(typeDefinition);
                 }
             }
         }
 
-        protected virtual void Visit(TypeDefinition type)
+        private void VisitNestedTypes(TypeDefinition type)
         {
             foreach (var t in type.NestedTypes)
             {
@@ -65,7 +66,10 @@ namespace CyanCor.ReSpekter
                     Visit(t);
                 }
             }
+        }
 
+        protected virtual void Visit(TypeDefinition type)
+        {
             foreach (var property in type.Properties)
             {
                 if (!property.CustomAttributes.Any(

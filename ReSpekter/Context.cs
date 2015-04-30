@@ -28,7 +28,6 @@ namespace CyanCor.ReSpekter
     using System.Diagnostics;
     using System.IO;
     using System.Reflection;
-    using System.Runtime.CompilerServices;
     using Mono.Cecil;
     using Mono.Cecil.Pdb;
     using global::ReSpekter.Exception;
@@ -78,20 +77,17 @@ namespace CyanCor.ReSpekter
             }
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public bool Run(object[] parameters)
         {
             object ignored;
             return RunInternal(parameters, out ignored);
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public bool Run(object[] parameters, out object result)
         {
             return RunInternal(parameters, out result);
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         private bool RunInternal(object[] parameters, out object result)
         { 
             if (IsClone)
@@ -170,7 +166,6 @@ namespace CyanCor.ReSpekter
             _cloneDomain = AppDomain.CreateDomain("ReSpekted", evidence, setup);
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         private static MethodBase GetCallingMethod()
         {
             var stackFrame = new StackTrace().GetFrames();
@@ -203,6 +198,7 @@ namespace CyanCor.ReSpekter
 
             _locationLookups.Add(assembly.FullName, assembly.Location);
 
+#if DEBUG
             var parameters = new ReaderParameters();
             var pdbName = Path.ChangeExtension(assembly.Location, "pdb");
             if (File.Exists(pdbName))
@@ -210,8 +206,11 @@ namespace CyanCor.ReSpekter
                 parameters.ReadSymbols = true;
                 parameters.SymbolReaderProvider = new PdbReaderProvider();
             }
-
             ModifyAssembly(AssemblyDefinition.ReadAssembly(assembly.Location, parameters));
+#else
+            ModifyAssembly(AssemblyDefinition.ReadAssembly(assembly.Location));
+#endif
+
         }
 
         private void ModifyAssembly(AssemblyDefinition assembly)
@@ -220,6 +219,7 @@ namespace CyanCor.ReSpekter
             {
                 if (AssemblyFilter.Check(assembly))
                 {
+                    Console.WriteLine("Processing assembly: " + assembly.Name);
                     foreach (var module in assembly.Modules)
                     {
                         foreach (var typeDefinition in module.GetTypes())
@@ -248,12 +248,20 @@ namespace CyanCor.ReSpekter
                         }
                     }
                     
-                    Directory.CreateDirectory("ReSpekted");
+                    var targetDir = Path.Combine(Environment.CurrentDirectory, "ReSpekted");
+                    Directory.CreateDirectory(targetDir);
+                    var path = Path.Combine(targetDir, assembly.MainModule.Name);
+
+#if DEBUG
                     var parameters = new WriterParameters();
                     parameters.SymbolWriterProvider = new PdbWriterProvider();
                     parameters.WriteSymbols = true;
-                    var path = "ReSpekted\\" + assembly.MainModule.Name;
                     assembly.Write(path, parameters);
+#else
+                    
+                    assembly.Write(path);
+#endif
+
                     /*if (File.Exists(Path.ChangeExtension(_locationLookups[assembly.FullName], ".pdb")))
                     {
                         File.Copy(Path.ChangeExtension(path, ".pdb"), Path.ChangeExtension(_locationLookups[assembly.FullName], ".pdb"), true);
