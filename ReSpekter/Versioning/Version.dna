@@ -1,0 +1,5 @@
+﻿DNA:Script("Versioning", "../../[Tools]/DNA/GitVersioning.cs")
+DNA:File("VersionInfo.template", "VersionInfo.generated.cs")
+DNA:End()
+
+

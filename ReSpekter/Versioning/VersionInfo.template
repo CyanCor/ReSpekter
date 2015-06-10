@@ -1,0 +1,34 @@
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright company="Cyan Cor" file="Versioning.cs">
+//   Copyright (c) 2013 Cyan Cor. All rights reserved.
+// </copyright>
+// <summary>
+//   Defines the Versioning type.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
+
+#pragma DNA:Set("Prefix", "[DNA]");
+#pragma DNA:Set("Postfix", "[/DNA]");
+#pragma DNA:End()
+
+namespace CyanCor
+{
+    internal static class VersionInfo
+    {
+		public const string Version = "[DNA]Versioning.Version[/DNA]";
+        public static string CleanVersion 
+        {
+            get
+            {
+                return Major + "." + Minor + "." + Patch + ((CommitsAfterTag > 0) ? "." + CommitsAfterTag + "-" + ShortCommit : "");
+            }
+        }
+        public const int Major = [DNA]Versioning.Major[/DNA];
+        public const int Minor = [DNA]Versioning.Minor[/DNA];
+        public const int Patch = [DNA]Versioning.Patch[/DNA];
+        public const int CommitsAfterTag = [DNA]Versioning.CommitsAfterTag[/DNA];
+        public const string ReleaseType = "[DNA]Versioning.ReleaseType[/DNA]";
+        public const string Commit = "[DNA]Versioning.Hash[/DNA]";
+		public const string ShortCommit = "[DNA]Versioning.ShortHash[/DNA]";
+    }
+}
