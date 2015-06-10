@@ -119,8 +119,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>pushd "$(SolutionDir)[Tools]/DNA/"
-mono DNA.exe "Input=$(ProjectDir)Versioning/Version.dna"</PreBuildEvent>
+    <PreBuildEvent>pushd "$(SolutionDir)[Tools]/DNA" &amp;  mono DNA.exe "Input=$(ProjectDir)Versioning/Version.dna" &amp; popd</PreBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
