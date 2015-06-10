@@ -169,6 +169,11 @@ namespace CyanCor.ReSpekter
         private static MethodBase GetCallingMethod()
         {
             var stackFrame = new StackTrace().GetFrames();
+            foreach (var frame in stackFrame)
+            {
+                Console.WriteLine(frame.ToString());
+            }
+
             var mainMethod = stackFrame[3].GetMethod();
 
             if (!mainMethod.IsStatic)
