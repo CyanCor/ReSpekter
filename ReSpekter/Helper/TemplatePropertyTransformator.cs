@@ -73,6 +73,22 @@ namespace CyanCor.ReSpekter.Helper
             {
                 _target.CustomAttributes.Add(customAttribute.Duplicate(_target.Module, Resolver));
             }
+
+            if (_templateProp.GetMethod != null && _target.GetMethod != null)
+            {
+                foreach (var customAttribute in _templateProp.GetMethod.CustomAttributes)
+                {
+                    _target.GetMethod.CustomAttributes.Add(customAttribute.Duplicate(_target.Module, Resolver));
+                }
+            }
+
+            if (_templateProp.SetMethod != null && _target.SetMethod != null)
+            {
+                foreach (var customAttribute in _templateProp.SetMethod.CustomAttributes)
+                {
+                    _target.SetMethod.CustomAttributes.Add(customAttribute.Duplicate(_target.Module, Resolver));
+                }
+            }
         }
 
         private object Resolver(object subject, Instruction instruction, ILProcessor processor)
