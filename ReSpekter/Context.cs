@@ -42,10 +42,16 @@ namespace CyanCor.ReSpekter
         private static string _basePath;
         public AcceptanceFilter<AssemblyDefinition> AssemblyFilter { get; private set; }
         private Dictionary<string, string> _locationLookups = new Dictionary<string, string>();
+        private List<Assembly> _addedAssemblies = new List<Assembly>();
 
         public bool IsClone
         {
             get { return _isClone; }
+        }
+
+        public void AddAssembly(Assembly assembly)
+        {
+            _addedAssemblies.Add(assembly);
         }
 
         private void AssemblyReady(byte[] assembly)
@@ -150,6 +156,11 @@ namespace CyanCor.ReSpekter
         private void ModifyAssemblies()
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                ModifyAssembly(assembly);
+            }
+
+            foreach (var assembly in _addedAssemblies)
             {
                 ModifyAssembly(assembly);
             }
