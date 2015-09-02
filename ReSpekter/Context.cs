@@ -19,6 +19,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 using System.Linq;
+using System.Security.Cryptography;
 using Mono.Cecil.Rocks;
 
 namespace CyanCor.ReSpekter
@@ -35,14 +36,16 @@ namespace CyanCor.ReSpekter
     [Serializable]
     public class Context : MarshalByRefObject
     {
+        private ReSpektedAssemblyResolver _assemblyResolver;
         private static bool _isClone;
         private AppDomain _cloneDomain;
         private Context _clone;
         private List<IModifier> _modifiers = new List<IModifier>();
         private static string _basePath;
+
         public AcceptanceFilter<AssemblyDefinition> AssemblyFilter { get; private set; }
-        private Dictionary<string, string> _locationLookups = new Dictionary<string, string>();
-        private List<Assembly> _addedAssemblies = new List<Assembly>();
+        private readonly Dictionary<string, string> _locationLookups = new Dictionary<string, string>();
+        private readonly List<Assembly> _addedAssemblies = new List<Assembly>();
 
         public bool IsClone
         {
@@ -79,8 +82,10 @@ namespace CyanCor.ReSpekter
                     subject => subject.MainModule.FullyQualifiedName.StartsWith(_basePath));
 
                 AssemblyFilter.Blacklist.Add(subject => subject.MainModule.Name.Equals("vshost32.exe"));
-                AssemblyFilter.Blacklist.Add(subject => subject.MainModule.Name.Equals("Mono.Cecil.dll"));
+                AssemblyFilter.Blacklist.Add(subject => subject.MainModule.Name.Contains("Mono.Cecil."));
             }
+
+            _assemblyResolver = new ReSpektedAssemblyResolver(_locationLookups);
         }
 
         public bool Run(object[] parameters)
@@ -103,25 +108,11 @@ namespace CyanCor.ReSpekter
             }
 
             var mainMethod = GetCallingMethod();
-            CreateAppDomain();
             ModifyAssemblies();
+            CreateAppDomain();
             result = RunClone(parameters, mainMethod);
             AppDomain.Unload(_cloneDomain);
             return true;
-        }
-
-        public Assembly LoadAssembly(string path)
-        {
-            var def = AssemblyDefinition.ReadAssembly(path);
-            ModifyAssembly(def);
-
-            string newPath;
-            if (!_locationLookups.TryGetValue(def.FullName, out newPath))
-            {
-                newPath = path;
-            }
-
-            return Assembly.LoadFile(newPath);
         }
 
         internal void Run(Assembly asm, object[] parameters)
@@ -175,6 +166,21 @@ namespace CyanCor.ReSpekter
             };
 
             _cloneDomain = AppDomain.CreateDomain("ReSpekted", evidence, setup);
+            
+        }
+
+        public static void PrintAssemblies(AppDomain domain)
+        {
+            Console.WriteLine("  ----------");
+            var list = domain.GetAssemblies().ToList();
+            list.Sort((assembly, assembly1) => assembly.GetName().Name.CompareTo(assembly1.GetName().Name));
+
+            foreach (var asm in list)
+            {
+                Console.WriteLine(asm.FullName + "\n\t" + asm.Location);
+            }
+            Console.WriteLine("  ----------");
+            Console.WriteLine();
         }
 
         private static MethodBase GetCallingMethod()
@@ -214,78 +220,105 @@ namespace CyanCor.ReSpekter
 
             _locationLookups.Add(assembly.FullName, assembly.Location);
 
-#if DEBUG
-            var parameters = new ReaderParameters();
-            var pdbName = Path.ChangeExtension(assembly.Location, "pdb");
-            if (File.Exists(pdbName))
+            foreach (var referencedAssembly in assembly.GetReferencedAssemblies())
             {
-                parameters.ReadSymbols = true;
-                parameters.SymbolReaderProvider = new PdbReaderProvider();
-            }
-            ModifyAssembly(AssemblyDefinition.ReadAssembly(assembly.Location, parameters));
-#else
-            ModifyAssembly(AssemblyDefinition.ReadAssembly(assembly.Location));
-#endif
-
-        }
-
-        private void ModifyAssembly(AssemblyDefinition assembly)
-        {
-            if (!assembly.FullName.Equals(typeof(Context).Assembly.FullName))
-            {
-                if (AssemblyFilter.Check(assembly))
+                foreach (var addedAssembly in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    Console.WriteLine("Processing assembly: " + assembly.Name);
-                    foreach (var module in assembly.Modules)
+                    if (addedAssembly.FullName.Equals(referencedAssembly.FullName))
                     {
-                        foreach (var typeDefinition in module.GetTypes())
+                        if (!_locationLookups.ContainsKey(assembly.FullName))
                         {
-                            foreach (var method in typeDefinition.Methods.Where(definition => definition.Body != null))
-                            {
-                                method.Body.SimplifyMacros();
-                            }
+                            ModifyAssembly(addedAssembly);
                         }
                     }
+                }
+            }
 
-                    foreach (var modifier in _modifiers)
-                    {
-                        modifier.Visit(assembly);
-                    }
 
-                    foreach (var module in assembly.Modules)
-                    {
-                        foreach (var typeDefinition in module.GetTypes())
-                        {
-                            foreach (var method in typeDefinition.Methods.Where(definition => definition.Body != null))
-                            {
-                                method.Body.SimplifyMacros();
-                                method.Body.OptimizeMacros();
-                            }
-                        }
-                    }
-                    
-                    var targetDir = Path.Combine(Environment.CurrentDirectory, "ReSpekted");
-                    Directory.CreateDirectory(targetDir);
-                    var path = Path.Combine(targetDir, assembly.MainModule.Name);
+            var parameters = new ReaderParameters();
+            parameters.AssemblyResolver = _assemblyResolver;
 
+
+            var targetDir = Path.Combine(Directory.GetCurrentDirectory(), "ReSpekted");
+            Directory.CreateDirectory(targetDir);
+            var path = Path.Combine(targetDir, Path.GetFileName(assembly.Location));
+
+
+
+            if (AssemblyFilter.Check(AssemblyDefinition.ReadAssembly(assembly.Location)))
+            {
 #if DEBUG
-                    var parameters = new WriterParameters();
-                    parameters.SymbolWriterProvider = new PdbWriterProvider();
-                    parameters.WriteSymbols = true;
-                    assembly.Write(path, parameters);
-#else
-                    
-                    assembly.Write(path);
+                var pdbName = Path.ChangeExtension(assembly.Location, "pdb");
+                if (File.Exists(pdbName))
+                {
+                    File.Copy(pdbName, Path.ChangeExtension(path, "pdb"), true);
+                    parameters.ReadSymbols = true;
+                    parameters.SymbolReaderProvider = new PdbReaderProvider();
+                }
 #endif
-
-                    /*if (File.Exists(Path.ChangeExtension(_locationLookups[assembly.FullName], ".pdb")))
-                    {
-                        File.Copy(Path.ChangeExtension(path, ".pdb"), Path.ChangeExtension(_locationLookups[assembly.FullName], ".pdb"), true);
-                    }*/
-
+                File.Copy(assembly.Location, path, true);
+                var assemblyDefinition = AssemblyDefinition.ReadAssembly(path, parameters);
+                var success = ModifyAssembly(assemblyDefinition, path);
+                if (!success)
+                {
+                    File.Delete(path);
+                }
+                else
+                {
                     _locationLookups[assembly.FullName] = Path.GetFullPath(path);
                 }
             }
+
+        }
+
+        private bool ModifyAssembly(AssemblyDefinition assembly, string destination)
+        {
+            if (!assembly.FullName.Equals(typeof (Context).Assembly.FullName))
+            {
+                Console.WriteLine("Processing assembly: " + assembly.Name);
+                foreach (var module in assembly.Modules)
+                {
+                    foreach (var typeDefinition in module.GetTypes())
+                    {
+                        foreach (var method in typeDefinition.Methods.Where(definition => definition.Body != null))
+                        {
+                            method.Body.SimplifyMacros();
+                        }
+                    }
+                }
+
+                foreach (var modifier in _modifiers)
+                {
+                    modifier.Visit(assembly);
+                }
+
+                foreach (var module in assembly.Modules)
+                {
+                    foreach (var typeDefinition in module.GetTypes())
+                    {
+                        foreach (var method in typeDefinition.Methods.Where(definition => definition.Body != null))
+                        {
+                            method.Body.SimplifyMacros();
+                            method.Body.OptimizeMacros();
+                        }
+                    }
+                }
+
+                var parameters = new WriterParameters();
+#if DEBUG
+                parameters.SymbolWriterProvider = new PdbWriterProvider();
+                parameters.WriteSymbols = true;
+#endif
+                assembly.Write(destination, parameters);
+                
+                return true;
+                /*if (File.Exists(Path.ChangeExtension(_locationLookups[assembly.FullName], ".pdb")))
+                    {
+                        File.Copy(Path.ChangeExtension(path, ".pdb"), Path.ChangeExtension(_locationLookups[assembly.FullName], ".pdb"), true);
+                    }*/
+            }
+
+            return false;
         }
 
         private object InvokeClone(string basePath, string assemblyName, string typeName, string methodName, object[] parameters)
@@ -293,12 +326,15 @@ namespace CyanCor.ReSpekter
             _isClone = true;
             _basePath = basePath;
 
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
+
             foreach (var locationLookup in _locationLookups)
             {
                 Assembly.LoadFrom(locationLookup.Value);
+                Console.WriteLine("Loading Assembly" + locationLookup.Value);
             }
 
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
+            PrintAssemblies(AppDomain.CurrentDomain);
 
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -308,6 +344,7 @@ namespace CyanCor.ReSpekter
                     {
                         if (type.FullName.Equals(typeName))
                         {
+                            PrintAssemblies(AppDomain.CurrentDomain);
                             var method = type.GetMethod(methodName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                             return method.Invoke(null, parameters);
                         }
@@ -326,6 +363,14 @@ namespace CyanCor.ReSpekter
             }
 
             return null;
+        }
+
+        public void AddModule(string path)
+        {
+            if (!_isClone)
+            {
+                _addedAssemblies.Add(Assembly.LoadFile(path));
+            }
         }
     }
 }

@@ -89,6 +89,7 @@
     <Compile Include="NoReSpekterAttribute.cs" />
     <Compile Include="Proxies\AssemblyProxy.cs" />
     <Compile Include="Proxies\ModuleProxy.cs" />
+    <Compile Include="ReSpektedAssemblyResolver.cs" />
     <Compile Include="Versioning\VersionInfo.generated.cs" />
   </ItemGroup>
   <ItemGroup>

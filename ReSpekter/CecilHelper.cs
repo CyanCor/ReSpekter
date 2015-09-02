@@ -266,7 +266,7 @@ namespace CyanCor.ReSpekter
                         var equal = true;
                         for (var i = 0; i < methodDefinition.Parameters.Count; i++)
                         {
-                            if (!methodDefinition.Parameters[i].Equals(resolved.Parameters[i]))
+                            if (!methodDefinition.Parameters[i].ToString().Equals(resolved.Parameters[i].ToString()))
                             {
                                 equal = false;
                             }
