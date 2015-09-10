@@ -265,6 +265,7 @@ namespace CyanCor.ReSpekter
                 }
                 else
                 {
+                    _assemblyResolver.UpdateAssembly(assemblyDefinition);
                     _locationLookups[assembly.FullName] = Path.GetFullPath(path);
                 }
             }
@@ -334,8 +335,6 @@ namespace CyanCor.ReSpekter
                 Console.WriteLine("Loading Assembly" + locationLookup.Value);
             }
 
-            PrintAssemblies(AppDomain.CurrentDomain);
-
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 if (assembly.FullName.Equals(assemblyName))
@@ -344,7 +343,6 @@ namespace CyanCor.ReSpekter
                     {
                         if (type.FullName.Equals(typeName))
                         {
-                            PrintAssemblies(AppDomain.CurrentDomain);
                             var method = type.GetMethod(methodName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                             return method.Invoke(null, parameters);
                         }

@@ -18,6 +18,7 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System.Net.Configuration;
 using Mono.Collections.Generic;
 
 namespace CyanCor.ReSpekter
@@ -99,9 +100,75 @@ namespace CyanCor.ReSpekter
         {
             return HasCustomAttribute(property.CustomAttributes, property.Module.Import(attribute));
         }
+
         public static bool HasCustomAttribute(this MethodDefinition method, Type attribute)
         {
-            return HasCustomAttribute(method.CustomAttributes, method.Module.Import(attribute));
+            return HasCustomAttribute(method.GetCustomAttributes(), method.Module.Import(attribute));
+        }
+
+        public static IEnumerable<CustomAttribute> GetCustomAttributes(this MethodDefinition method)
+        {
+            IEnumerable<CustomAttribute> attributes = new CustomAttribute[] { };
+            var type = method.DeclaringType;
+            while (true)
+            {
+                var derived = type.Methods.Where(definition => IsDerived(definition, method)).ToArray();
+                if (derived.Length == 1)
+                {
+                    attributes = attributes.Concat(derived[0].CustomAttributes);
+                }
+                if (type.BaseType != null)
+                {
+                    type = type.BaseType.Resolve();
+                }
+                else
+                {
+                    return attributes;
+                }
+            }
+        }
+
+        public static bool SignatureEquals(MethodDefinition a, MethodDefinition b)
+        {
+            if (a == null || b == null)
+            {
+                return false;
+            }
+
+            if (a.Parameters.Count != b.Parameters.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < a.Parameters.Count; i++)
+            {
+                if (a.Parameters[i].ParameterType != b.Parameters[i].ParameterType)
+                {
+                    return false;
+                }
+
+                if (a.Parameters[i].Attributes != b.Parameters[i].Attributes)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool IsDerived(MethodDefinition a, MethodDefinition b)
+        {
+            if (a == null || b == null)
+            {
+                return false;
+            }
+
+            if (a.Name != b.Name)
+            {
+                return false;
+            }
+
+            return SignatureEquals(a, b);
         }
 
         private static bool HasCustomAttribute(IEnumerable<CustomAttribute> customAttributes, TypeReference attribute)

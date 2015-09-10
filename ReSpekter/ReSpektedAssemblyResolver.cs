@@ -9,6 +9,11 @@ namespace CyanCor.ReSpekter
         private readonly Dictionary<string, string> _locationLookups;
         private readonly DefaultAssemblyResolver _defaultAssemblyResolver = new DefaultAssemblyResolver();
 
+        public void UpdateAssembly(AssemblyDefinition assembly)
+        {
+            _definitionLookup[assembly.FullName] = assembly;
+        }
+
         public ReSpektedAssemblyResolver(Dictionary<string, string> locationLookups)
         {
             _locationLookups = locationLookups;
