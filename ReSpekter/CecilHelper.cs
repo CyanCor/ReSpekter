@@ -103,12 +103,21 @@ namespace CyanCor.ReSpekter
 
         public static bool HasCustomAttribute(this MethodDefinition method, Type attribute)
         {
+            if (method == null)
+            {
+                Console.WriteLine("HasCustomAttribute called on null!");
+                return false;
+            }
             return HasCustomAttribute(method.GetCustomAttributes(), method.Module.Import(attribute));
         }
 
         public static IEnumerable<CustomAttribute> GetCustomAttributes(this MethodDefinition method)
         {
             IEnumerable<CustomAttribute> attributes = new CustomAttribute[] { };
+            if (method == null)
+            {
+                return attributes;
+            }
             var type = method.DeclaringType;
             while (type != null)
             {
