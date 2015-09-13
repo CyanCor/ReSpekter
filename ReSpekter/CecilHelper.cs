@@ -110,12 +110,15 @@ namespace CyanCor.ReSpekter
         {
             IEnumerable<CustomAttribute> attributes = new CustomAttribute[] { };
             var type = method.DeclaringType;
-            while (true)
+            while (type != null)
             {
-                var derived = type.Methods.Where(definition => IsDerived(definition, method)).ToArray();
-                if (derived.Length == 1)
+                if (type.Methods != null)
                 {
-                    attributes = attributes.Concat(derived[0].CustomAttributes);
+                    var derived = type.Methods.Where(definition => IsDerived(definition, method)).ToArray();
+                    if (derived.Length == 1)
+                    {
+                        attributes = attributes.Concat(derived[0].CustomAttributes);
+                    }
                 }
                 if (type.BaseType != null)
                 {
@@ -123,9 +126,11 @@ namespace CyanCor.ReSpekter
                 }
                 else
                 {
-                    return attributes;
+                    break;
                 }
             }
+
+            return attributes;
         }
 
         public static bool SignatureEquals(MethodDefinition a, MethodDefinition b)
