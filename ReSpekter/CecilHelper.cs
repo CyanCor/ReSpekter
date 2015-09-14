@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="CecilHelper.cs" company="CyanCor GmbH">
-//   Copyright (c) 2014 CyanCor GmbH
+//   Copyright (c) 2015 CyanCor GmbH
 //   
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -17,9 +17,6 @@
 //   Defines the CecilHelper type.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
-
-using System.Net.Configuration;
-using Mono.Collections.Generic;
 
 namespace CyanCor.ReSpekter
 {
@@ -99,6 +96,11 @@ namespace CyanCor.ReSpekter
         public static bool HasCustomAttribute(this PropertyDefinition property, Type attribute)
         {
             return HasCustomAttribute(property.CustomAttributes, property.Module.Import(attribute));
+        }
+
+        public static bool HasCustomAttribute(this TypeDefinition type, Type attribute)
+        {
+            return HasCustomAttribute(type.CustomAttributes, type.Module.Import(attribute));
         }
 
         public static bool HasCustomAttribute(this MethodDefinition method, Type attribute)
